@@ -7,7 +7,7 @@
 
 ## 按钮例子
 
-[![SimpleWindow](https://s1.ax1x.com/2022/05/24/XiEWtg.png)](https://github.com/twgh/xc-elementui/tree/main/example/AllButton)
+![按钮例子](https://github.com/user-attachments/assets/77ce30d5-64bf-4c3e-9b1f-a85941b46a3f)
 
 ## 开发进度
 
