@@ -18,6 +18,19 @@ func OffsetRect(rc xc.RECT, left, top, right, bottom int32) xc.RECT {
 	return rc2
 }
 
+// Bool2Str 将 bool 类型转换到文本 true 或 false.
+func Bool2Str(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+// Str2Bool 将文本类型的 true 或 false 转换到 bool 类型.
+func Str2Bool(s string) bool {
+	return s == "true"
+}
+
 // Xchar 传入Unicode码点转换到字符. 如20013是'中'.
 func Xchar(UnicodePoint int32) string {
 	return string(UnicodePoint)

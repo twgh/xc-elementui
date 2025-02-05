@@ -8,7 +8,6 @@ import (
 	"github.com/twgh/xcgui/imagex"
 	"github.com/twgh/xcgui/svg"
 	"github.com/twgh/xcgui/window"
-	"github.com/twgh/xcgui/xc"
 	"github.com/twgh/xcgui/xcc"
 	"time"
 )
@@ -33,48 +32,68 @@ func main() {
 	w.SetBorderSize(0, 32, 0, 0)
 	// 设置窗口阴影, 圆角
 	w.SetTransparentType(xcc.Window_Transparent_Shadow).SetShadowInfo(8, 255, 10, false, 0).SetTransparentAlpha(255)
-	// 窗口启用布局, 水平垂直居中, 自动换行
-	w.EnableLayout(true).SetSpace(10).SetSpaceRow(10).SetAlignH(xcc.Layout_Align_Center).SetAlignV(xcc.Layout_Align_Center).EnableAutoWrap(true)
+	// 窗口启用布局, 水平垂直居中, 自动换行, 行列间距10
+	w.EnableLayout(true).SetSpace(10).SetSpaceRow(10).SetAlignH(xcc.Layout_Align_Center).SetAlignV(xcc.Layout_Align_Center).EnableAutoWrap(true).SetPadding(4, 4, 4, 4)
 
 	// 创建Elementui对象
 	e = eui.NewElementui(12, w.GetDPI())
-
-	// 默认按钮
-	e.CreateButton(0, 0, 0, 0, "默认按钮", w.Handle)
-	// 主要按钮
-	e.CreateButton(0, 0, 0, 0, "主要按钮", w.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary})
-	// 图标+文字按钮 成功按钮
-	e.CreateButton(0, 0, 0, 0, "图标文字", w.Handle, eui.ButtonOption{IconName: "fa-house-medical-flag", Style: eui.ButtonStyle_Success})
-	// 图标+文字按钮 信息按钮 朴素按钮
-	e.CreateButton(0, 0, 0, 0, "朴素按钮", w.Handle, eui.ButtonOption{IconName: "fa-jet-fighter", Style: eui.ButtonStyle_Info, IsPlain: true})
-	// 图标+文字按钮 禁用状态 警告按钮
-	e.CreateButton(0, 0, 0, 0, "禁用状态", w.Handle, eui.ButtonOption{IconName: "fa-wpexplorer", Style: eui.ButtonStyle_Warning}).Enable(false)
-	// 图标+文字 圆角按钮 警告按钮
-	e.CreateButton(0, 0, 0, 0, "圆角按钮", w.Handle, eui.ButtonOption{IconName: "fa-circle-radiation", IsRound: true, Style: eui.ButtonStyle_Warning})
-	// 图标按钮 危险按钮
-	e.CreateButton(0, 0, 56, 40, "", w.Handle, eui.ButtonOption{IconName: "fa-volcano", Style: eui.ButtonStyle_Danger})
-	// 圆形图标按钮 主要按钮
-	e.CreateButton(0, 0, 40, 40, "", w.Handle, eui.ButtonOption{IconName: "fa-text-height", IsCircle: true, Style: eui.ButtonStyle_Primary})
-
-	// 图标按钮 默认按钮 自定义svg图标
 	svgElement := svg.NewByStringW(svg_element).SetSize(20, 20)
-	btn0 := e.CreateButton(0, 0, 0, 0, "点我加载", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle, Style: eui.ButtonStyle_Primary})
-	btn0.Event_BnClick1(func(hEle int, pbHandled *bool) int {
-		btn0.SetLoading(true, 0, "")
-		go func() {
-			time.Sleep(2 * time.Second)
-			/*
-				在这里做一些加载数据的操作, 比如读取数据库数据
-			*/
-			xc.XC_CallUT(func() {
+
+	// 按钮
+	{
+		// 默认按钮
+		e.CreateButton(0, 0, 0, 0, "默认按钮", w.Handle)
+		// 主要按钮
+		e.CreateButton(0, 0, 0, 0, "主要按钮", w.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary})
+		// 图标+文字按钮 成功按钮
+		e.CreateButton(0, 0, 0, 0, "图标文字", w.Handle, eui.ButtonOption{IconName: "fa-house-medical-flag", Style: eui.ButtonStyle_Success})
+		// 图标+文字按钮 信息按钮 朴素按钮
+		e.CreateButton(0, 0, 0, 0, "朴素按钮", w.Handle, eui.ButtonOption{IconName: "fa-jet-fighter", Style: eui.ButtonStyle_Info, IsPlain: true})
+		// 图标+文字按钮 禁用状态 警告按钮
+		e.CreateButton(0, 0, 0, 0, "禁用状态", w.Handle, eui.ButtonOption{IconName: "fa-wpexplorer", Style: eui.ButtonStyle_Warning}).Enable(false)
+		// 图标+文字 圆角按钮 警告按钮
+		e.CreateButton(0, 0, 0, 0, "圆角按钮", w.Handle, eui.ButtonOption{IconName: "fa-circle-radiation", IsRound: true, Style: eui.ButtonStyle_Warning})
+		// 图标按钮 危险按钮
+		e.CreateButton(0, 0, 56, 40, "", w.Handle, eui.ButtonOption{IconName: "fa-volcano", Style: eui.ButtonStyle_Danger})
+		// 圆形图标按钮 主要按钮
+		e.CreateButton(0, 0, 40, 40, "", w.Handle, eui.ButtonOption{IconName: "fa-text-height", IsCircle: true, Style: eui.ButtonStyle_Primary})
+
+		// 图标按钮 主要按钮 自定义svg图标 加载
+		btn := e.CreateButton(0, 0, 0, 0, "点我加载", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle, Style: eui.ButtonStyle_Primary})
+		btn.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn.SetLoading(true, 0, "")
+			go func() {
+				time.Sleep(2 * time.Second)
 				/*
-					拿到数据库数据后, 如果要赋予ui元素数据, 要在这里操作ui元素
+					在这里做一些加载数据的操作, 比如读取数据库数据
 				*/
-				btn0.SetLoading(false, 0, "")
-			})
-		}()
-		return 0
-	})
+				a.CallUT(func() {
+					/*
+						拿到数据库数据后, 如果要赋予ui元素数据, 要在这里操作ui元素
+					*/
+					btn.SetLoading(false, 0, "")
+				})
+			}()
+			return 0
+		})
+
+		// 图标按钮 默认按钮 自定义svg图标
+		e.CreateButton(0, 0, 40, 40, "", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle})
+	}
+
+	// 编辑框
+	{
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{DefaultText: "圆角18"}).SetRound(18)
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{IconName: "fa-user", AutoColor: true, DefaultText: "图标+自动变色+直角"}).SetRound(0)
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{IconName: "fa-user", AutoColor: true, DefaultText: "图标+自动变色"}).SetRound(4)
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{IconName: "fa-regular fa-address-book", IsRight: true, DefaultText: "右边图标+不变色"})
+
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{HSvg: svgElement.Handle, AutoColor: true, DefaultText: "svg图标+自动变色"})
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{HSvg: svgElement.Handle, AutoColor: true, DefaultText: "svg图标+自动变色", IsRight: true})
+
+		hImage := app.NewImageBySvg(svg.NewByStringW(svg_element).SetSize(20, 20).Handle).Handle
+		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{HImage: hImage, DefaultText: "hImage不会自动变色"})
+	}
 
 	w.Show(true)
 	a.Run()

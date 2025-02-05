@@ -9,12 +9,135 @@ import (
 	"strings"
 )
 
-// Button is elementui-Button, 继承widget.Button.
+// Button is elementui-Button, 继承 widget.Button.
 type Button struct {
-	opt             ButtonOption
-	hFontAwesomeMap map[string]int // FontAwesome字体句柄
-	dpi             int32          // 窗口dpi
 	widget.Button
+	objBase
+}
+
+// CreateButton 创建按钮, 本函数会自己注册元素绘制事件进行绘制.
+//
+// x: 左边.
+//
+// y: 顶边.
+//
+// cx: 宽度. 大于0时 ButtonOption 按钮选项中的Size字段无效.
+//
+// cy: 高度. 大于0时 ButtonOption 按钮选项中的Size字段无效.
+//
+// text: 文本.
+//
+// hParent: 父元素或父窗口句柄.
+//
+// opts: ButtonOption 按钮选项, 可不填.
+func (e *Elementui) CreateButton(x, y, cx, cy int32, text string, hParent int, opts ...ButtonOption) *Button {
+	var opt ButtonOption
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	if opt.Style < ButtonStyle_Default || opt.Style > ButtonStyle_Text {
+		opt.Style = ButtonStyle_Default
+	}
+	if opt.Size < ButtonSize_Default || opt.Size > ButtonSize_Mini {
+		opt.Size = ButtonSize_Default
+	}
+
+	// 创建按钮
+	btn := &Button{}
+	btn.hFontAwesomeMap = e.hFontAwesomeMap
+	btn.dpi = e.dpi
+	btn.SetHandle(xc.XBtn_Create(x, y, cx, cy, text, hParent))
+	btn.H = btn.Handle
+	// 设置大小
+	if cx < 1 && cy < 1 {
+		btn.SetSizeEle(opt.Size)
+	}
+
+	// 启用背景透明
+	btn.EnableBkTransparent(true)
+	// 设置是否圆角按钮
+	btn.SetRound(opt.IsRound)
+	// 设置是否圆形按钮
+	btn.SetCircle(opt.IsCircle)
+	// 设置是否朴素按钮
+	btn.SetPlain(opt.IsPlain)
+	// 设置样式
+	btn.SetStyle(opt.Style)
+
+	// 自定义炫彩svg句柄优先级最高, 其次是炫彩图片句柄, 再然后是iconFa
+	if opt.HSvg > 0 && xc.XC_IsHXCGUI(opt.HSvg, xcc.XC_SVG) {
+		btn.SetHSvg(opt.HSvg)
+	} else if opt.HImage > 0 && xc.XC_IsHXCGUI(opt.HImage, xcc.XC_IMAGE_FRAME) {
+		btn.SetHImage(opt.HImage)
+	} else { // 确定iconFa图标和字体类型
+		if opt.IconUnicode > 0 {
+			btn.SetIconUnicode(opt.IconUnicode)
+		} else if opt.IconHex != "" {
+			btn.SetIconHex(opt.IconHex)
+		} else if opt.IconName != "" {
+			btn.SetIconName(opt.IconName)
+		}
+	}
+
+	// 注册元素绘制事件
+	btn.Event_PAINT1(onDrawEle)
+	return btn
+}
+
+// ChangeButton 改变现有的按钮. 可配合界面设计器来使用, 设计器里放按钮, 然后在代码里调用改变样式.
+//
+// hBtn: 按钮句柄. 如果不是按钮句柄, 函数会返回nil.
+//
+// opts: ButtonOption 按钮选项, 可不填. 只有填写了其中的Size字段, 才会改变现有按钮的宽高.
+func (e *Elementui) ChangeButton(hBtn int, opts ...ButtonOption) *Button {
+	if xc.XC_GetObjectType(hBtn) != xcc.XC_BUTTON {
+		return nil
+	}
+	var opt ButtonOption
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	if opt.Style < ButtonStyle_Default || opt.Style > ButtonStyle_Text {
+		opt.Style = ButtonStyle_Default
+	}
+
+	// 创建element按钮对象
+	btn := &Button{}
+	btn.hFontAwesomeMap = e.hFontAwesomeMap
+	btn.dpi = e.dpi
+	btn.SetHandle(hBtn)
+	// 正确填写Size时才改变按钮的宽高
+	btn.SetSizeEle(opt.Size)
+
+	// 启用背景透明
+	btn.EnableBkTransparent(true)
+	// 设置是否圆角按钮
+	btn.SetRound(opt.IsRound)
+	// 设置是否圆形按钮
+	btn.SetCircle(opt.IsCircle)
+	// 设置是否朴素按钮
+	btn.SetPlain(opt.IsPlain)
+	// 设置样式
+	btn.SetStyle(opt.Style)
+
+	// 自定义炫彩svg句柄优先级最高, 其次是炫彩图片句柄, 再然后是iconFa
+	if opt.HSvg > 0 && xc.XC_IsHXCGUI(opt.HSvg, xcc.XC_SVG) {
+		btn.SetHSvg(opt.HSvg)
+	} else if opt.HImage > 0 && xc.XC_IsHXCGUI(opt.HImage, xcc.XC_IMAGE_FRAME) {
+		btn.SetHImage(opt.HImage)
+	} else { // 确定iconFa图标和字体类型
+		if opt.IconUnicode > 0 {
+			btn.SetIconUnicode(opt.IconUnicode)
+		} else if opt.IconHex != "" {
+			btn.SetIconHex(opt.IconHex)
+		} else if opt.IconName != "" {
+			btn.SetIconName(opt.IconName)
+		}
+	}
+
+	// 注册元素绘制事件
+	btn.Event_PAINT1(onDrawEle)
+	return btn
 }
 
 // SetLoading 启用或关闭加载中状态, 开启后会显示加载中图标, 同时按钮会禁止点击, 内部已自动重绘按钮.
@@ -75,7 +198,7 @@ func (b *Button) SetLoading(on bool, svgSize int32, text string) *Button {
 
 // SetSizeEle 设置 Button 的大小. 只能使用预设好的常量.
 //
-// size: 预设好的按钮大小, 可使用常量: ButtonSize_.
+// size: 预设好的大小, 可使用常量: ButtonSize_.
 func (b *Button) SetSizeEle(size int) *Button {
 	if size >= ButtonSize_Default && size <= ButtonSize_Mini {
 		widths := []int32{98, 98, 80, 80}
@@ -92,12 +215,12 @@ func (b *Button) SetSizeEle(size int) *Button {
 // style: 按钮样式, 默认为 ButtonStyle_Default, 可使用常量: ButtonStyle_.
 func (b *Button) SetStyle(style int) *Button {
 	// 选择不同的绘制事件
-	var funcDraw, bgColors, textColors, borderColors, textcolor string
+	var funcDrawEle, bgColors, textColors, borderColors, textcolor string
 	if b.IsPlain() && style != ButtonStyle_Text {
 		if style == ButtonStyle_Default {
-			funcDraw = "onDrawButton_Default"
+			funcDrawEle = "onDrawButton_Default"
 		} else {
-			funcDraw = "onDrawButton_Color_Plain"
+			funcDrawEle = "onDrawButton_Color_Plain"
 			bgColors = bgColorsMap_Plain[style]
 			textColors = textColorsMap_Plain[style]
 			borderColors = borderColorsMap_Plain[style]
@@ -106,17 +229,17 @@ func (b *Button) SetStyle(style int) *Button {
 		}
 	} else if !b.IsPlain() && style != ButtonStyle_Text {
 		if style == ButtonStyle_Default {
-			funcDraw = "onDrawButton_Default"
+			funcDrawEle = "onDrawButton_Default"
 		} else {
-			funcDraw = "onDrawButton_Color"
+			funcDrawEle = "onDrawButton_Color"
 			textcolor = "4294967295"
 			b.SetProperty("element-text-color", textcolor)
 		}
 		bgColors = bgcolorsMap[style]
 	} else { // 无边框无背景
-		funcDraw = "onDrawButton_Text"
+		funcDrawEle = "onDrawButton_Text"
 	}
-	b.SetProperty("element-func-draw", funcDraw)
+	b.SetProperty("element-func-draw-ele", funcDrawEle)
 	b.SetProperty("element-bg-colors", bgColors)
 	return b
 }
@@ -137,11 +260,7 @@ func (b *Button) SetRound(isRound bool) *Button {
 //
 // isCircle: 是否圆形按钮.
 func (b *Button) SetCircle(isCircle bool) *Button {
-	if isCircle {
-		b.SetProperty("element-circle", "true")
-	} else {
-		b.SetProperty("element-circle", "false")
-	}
+	b.SetProperty("element-circle", Bool2Str(isCircle))
 	return b
 }
 
@@ -149,11 +268,7 @@ func (b *Button) SetCircle(isCircle bool) *Button {
 //
 // isPlain: 是否朴素按钮.
 func (b *Button) SetPlain(isPlain bool) *Button {
-	if isPlain {
-		b.SetProperty("element-plain", "true")
-	} else {
-		b.SetProperty("element-plain", "false")
-	}
+	b.SetProperty("element-plain", Bool2Str(isPlain))
 	return b
 }
 
@@ -172,156 +287,30 @@ func (b *Button) IsPlain() bool {
 	return b.GetProperty("element-plain") == "true"
 }
 
-// ClearIcon 清除掉已设置的Font Awesome 图标, hsvg和himage.
-func (b *Button) ClearIcon() *Button {
-	b.SetProperty("element-icon-hsvg", "")
-	b.SetProperty("element-icon-himage", "")
-	b.SetProperty("element-icon-fa", "")
-	return b
-}
-
-// SetHSvg 设置炫彩svg句柄.
-//
-// hSvg: 炫彩svg句柄.
-func (b *Button) SetHSvg(hSvg int) *Button {
-	b.ClearIcon()
-	if hSvg > 0 && xc.XC_IsHXCGUI(hSvg, xcc.XC_SVG) {
-		b.SetProperty("element-icon-hsvg", strconv.Itoa(hSvg))
-	}
-	return b
-}
-
-// SetHImage 设置炫彩图片句柄.
-//
-// hImage: 炫彩图片句柄.
-func (b *Button) SetHImage(hImage int) *Button {
-	b.ClearIcon()
-	if hImage > 0 && xc.XC_IsHXCGUI(hImage, xcc.XC_IMAGE_FRAME) {
-		b.SetProperty("element-icon-himage", strconv.Itoa(hImage))
-	}
-	return b
-}
-
-// setIconFa 设置iconfa的相关信息.
-//
-// iconFaStr: Font Awesome 图标字符串.
-//
-// fontType: 字体类型, 可为'fa-solid', 'fa-brands', 'fa-regular'.
-func (b *Button) setIconFa(iconFaStr, fontType string) *Button {
-	b.ClearIcon()
-	b.SetProperty("element-icon-fa", iconFaStr)
-	if iconFaStr != "" { // 确定字体句柄和字体显示大小
-		hFontAwesome := b.hFontAwesomeMap[fontType]
-		b.SetProperty("element-hfontawesome", strconv.Itoa(hFontAwesome))
-		var hFontAwesomeShowSize xc.SIZE
-		xc.XC_GetTextShowSize(iconFaStr, 1, hFontAwesome, &hFontAwesomeShowSize)
-		b.SetProperty("element-hfontawesome-showsize-cx", xc.Itoa(hFontAwesomeShowSize.CX))
-	}
-	return b
-}
-
-// SetIconName 设置Font Wesome 图标名.
-//
-// iconName: Font Awesome 图标名.
-//   - 如'fa-solid fa-paw', 前面是风格, 后面是图标名, 用空格分开, 其中风格可省略, 没有风格时会自动根据'fa-solid', 'fa-brands', 'fa-regular'的顺序尝试添加风格.
-//   - 图标大全: https://fa6.dashgame.com, 在网页里点导航栏图标, 然后点免费, 可筛选出2000+免费图标, 点击图标会复制完整风格+图标名到剪贴板, 可直接使用. 内置FontAwesome版本为6.6.0
-func (b *Button) SetIconName(iconName string) *Button {
-	// 删首尾空
-	iconName = strings.TrimSpace(iconName)
-	var iconFaStr, fontType string
-	// 判断IconName是否存在, 如不存在就尝试加上所有风格前缀, 有就使用
-	var iconUnicode int32
-	var ok bool
-	iconName2 := iconName
-	styles := []string{"fa-solid ", "fa-brands ", "fa-regular "}
-	for i := -1; i < len(styles); i++ {
-		if i > -1 {
-			iconName2 = styles[i] + iconName
-		}
-		if iconUnicode, ok = fontAwesomemMap[iconName2]; ok {
-			iconName = iconName2
-			break
-		}
-	}
-	if iconUnicode > 0 {
-		iconFaStr = string(iconUnicode)
-		// 得到字体类型
-		fontType = iconName
-		index := strings.Index(fontType, " ")
-		if index != -1 {
-			fontType = fontType[:index]
-		}
-	}
-	b.setIconFa(iconFaStr, fontType)
-	return b
-}
-
-// SetIconHex 设置Font Awesome 图标对应的Unicode码点十六进制文本.
-//
-// iconHex: Font Wesome 图标对应的Unicode码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
-func (b *Button) SetIconHex(iconHex string) *Button {
-	iconInt, _ := strconv.ParseInt(iconHex, 16, 32)
-	iconUnicode := int32(iconInt)
-	iconFaStr := string(iconUnicode)
-	var fontType string
-	// 遍历map找出图标name, 得到字体类型
-	for name, value := range fontAwesomemMap {
-		if value == iconUnicode {
-			fontType = name
-			index := strings.Index(fontType, " ")
-			if index != -1 {
-				fontType = fontType[:index]
-			}
-			break
-		}
-	}
-	b.setIconFa(iconFaStr, fontType)
-	return b
-}
-
-// SetIconUnicode 设置Font Awesome 图标对应的Unicode码点十进制数字.
-//
-// iconUnicode: Font Awesome 图标对应的Unicode码点十进制数字, 如61872相当于'fa-solid fa-paw'.
-func (b *Button) SetIconUnicode(iconUnicode int32) *Button {
-	iconFaStr := string(iconUnicode)
-	var fontType string
-	// 遍历map找出图标name, 得到字体类型
-	for name, value := range fontAwesomemMap {
-		if value == iconUnicode {
-			fontType = name
-			index := strings.Index(fontType, " ")
-			if index != -1 {
-				fontType = fontType[:index]
-			}
-			break
-		}
-	}
-	b.setIconFa(iconFaStr, fontType)
-	return b
-}
-
 // ButtonOption 按钮选项.
 type ButtonOption struct {
+	// 自定义炫彩svg句柄.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	HSvg int
+	// 自定义炫彩图片句柄.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	HImage int
+
+	// Font Wesome 图标对应的Unicode码点十进制数字, 如61872相当于'fa-solid fa-paw'.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	IconUnicode int32
+	// Font Wesome 图标对应的Unicode码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	IconHex string
 	// Font Wesome 图标名.
 	//  - 如'fa-solid fa-paw', 前面是风格, 后面是图标名, 用空格分开, 其中风格可省略, 没有风格时会自动根据'fa-solid', 'fa-brands', 'fa-regular'的顺序尝试添加风格.
 	//  - 图标大全: https://fa6.dashgame.com, 在网页里点导航栏图标, 然后点免费, 可筛选出2000+免费图标, 点击图标会复制完整风格+图标名到剪贴板, 可直接使用. 内置FontAwesome版本为6.6.0
 	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
 	IconName string
-	// Font Wesome 图标对应的Unicode码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
-	IconHex string
-	// Font Wesome 图标对应的Unicode码点十进制数字, 如61872相当于'fa-solid fa-paw'.
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
-	IconUnicode int32
-
-	// 自定义炫彩svg句柄, 优先级最高, 如果使用了这个那么 HImage, IconName, IconHex, IconUnicode 这几个参数就无效了.
-	HSvg int
-	// 自定义炫彩图片句柄, 优先级仅低于 HSvg 参数, 如果使用了这个那么 IconName, IconHex, IconUnicode 这几个参数就无效了.
-	HImage int
 
 	// 按钮尺寸, 默认为 ButtonSize_Default, 可使用常量: ButtonSize_
-	//  - 使用预设的按钮尺寸效果会比较好.
-	//  - 如果cx或cy参数 > 0那么本字段就无效.
+	//  - 使用预设的尺寸效果会比较好.
+	//  - 如果 cx 或 cy 参数 > 0 那么本字段就无效.
 	//  - 1 = default (98x40)
 	//  - 2 = medium (98x36)
 	//  - 3 = small (80x32)
@@ -372,14 +361,6 @@ const (
 	ButtonStyle_Text
 )
 
-// funcDrawMap 存放元素绘制事件
-var funcDrawMap = map[string]widget.XE_PAINT1{
-	"onDrawButton_Default":     onDrawButton_Default,
-	"onDrawButton_Color":       onDrawButton_Color,
-	"onDrawButton_Text":        onDrawButton_Text,
-	"onDrawButton_Color_Plain": onDrawButton_Color_Plain,
-}
-
 // bgcolorsMap 存放普通按钮的背景颜色字符串
 var bgcolorsMap = map[int]string{
 	ButtonStyle_Default: "4294967295, 4294964716, 4294964716, -1, 4294967295",
@@ -415,15 +396,6 @@ var textColorsMap_Plain = map[int]string{
 	ButtonStyle_Info:    "4288254864, 4294967295, 4294967295, -1, 4290952892",
 	ButtonStyle_Warning: "4282163942, 4294967295, 4294967295, -1, 4287285232",
 	ButtonStyle_Danger:  "4285295861, 4294967295, 4294967295, -1, 4289177593",
-}
-
-// onDrawEle 元素绘制事件
-func onDrawEle(hEle int, hDraw int, pbHandled *bool) int {
-	funcDraw := xc.XC_GetProperty(hEle, "element-func-draw")
-	if f, ok := funcDrawMap[funcDraw]; ok {
-		f(hEle, hDraw, pbHandled)
-	}
-	return 0
 }
 
 // 默认按钮和朴素默认按钮 style 0

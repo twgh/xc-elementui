@@ -35,23 +35,23 @@ func main() {
 	w.SetBorderSize(0, 32, 0, 0)
 	// 设置窗口阴影, 圆角
 	w.SetTransparentType(xcc.Window_Transparent_Shadow).SetShadowInfo(8, 255, 10, false, 0).SetTransparentAlpha(255)
-	// 窗口启用布局, 水平垂直居中
+	// 窗口启用布局, 水平垂直居中, 行列间距10
 	w.EnableLayout(true).SetSpace(10).SetSpaceRow(10).SetAlignH(xcc.Layout_Align_Center).SetAlignV(xcc.Layout_Align_Center)
 
 	// 创建Elementui对象
 	e = eui.NewElementui(12, w.GetDPI())
 	// 创建按钮
-	createButton()
+	createButton(w.Handle)
 
 	a.ShowAndRun(w.Handle)
 	a.Exit()
 }
 
 // 创建按钮
-func createButton() {
+func createButton(hParent int) {
 	// 基础按钮
 	{
-		layout := widget.NewLayoutEle(0, 0, 0, 0, w.Handle)
+		layout := widget.NewLayoutEle(0, 0, 0, 0, hParent)
 		layout.EnableDrawBorder(true).SetBorderSize(1, 1, 1, 1)
 		layout.SetWidth(704).SetHeight(514).SetPadding(10, 0, 0, 0)
 		layout.SetSpace(10).SetSpaceRow(10).SetAlignV(xcc.Layout_Align_Center)
@@ -201,7 +201,7 @@ func createButton() {
 					/*
 						在这里做一些加载数据的操作, 比如读取数据库数据
 					*/
-					xc.XC_CallUT(func() {
+					a.CallUT(func() {
 						/*
 							拿到数据库数据后, 如果要赋予ui元素数据, 要在这里操作ui元素
 						*/
@@ -294,7 +294,7 @@ func createButton() {
 
 	// 无边框无背景按钮
 	{
-		layout := widget.NewLayoutEle(0, 0, 0, 0, w.Handle)
+		layout := widget.NewLayoutEle(0, 0, 0, 0, hParent)
 		layout.EnableDrawBorder(true).SetBorderSize(1, 1, 1, 1)
 		layout.SetWidth(704).SetHeight(100).SetPadding(10, 0, 0, 0)
 		layout.SetSpace(10).SetSpaceRow(10).SetAlignV(xcc.Layout_Align_Center)

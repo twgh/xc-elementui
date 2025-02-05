@@ -1,5 +1,5 @@
 module github.com/twgh/xc-elementui
 
-go 1.20
+go 1.16
 
-require github.com/twgh/xcgui v1.3.392 // indirect
+require github.com/twgh/xcgui v1.3.394

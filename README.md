@@ -1,6 +1,7 @@
 <h1 align="center">xc-elementui</h1>
 <p align="center">
-    <a href="https://github.com/twgh/xcgui"><img src="https://img.shields.io/badge/xcgui-1.3.392-blue" alt="xcgui"></a>
+    <a href="https://github.com/twgh/xc-elementui/releases"><img src="https://img.shields.io/badge/release-早期版本-blue" alt="release"></a>
+    <a href="https://github.com/twgh/xcgui"><img src="https://img.shields.io/badge/xcgui-1.3.394-blue" alt="xcgui"></a>
    <a href="https://golang.org"> <img src="https://img.shields.io/badge/golang-≥1.16-blue" alt="golang"></a>
     <a href="https://pkg.go.dev/github.com/twgh/xc-elementui"><img src="https://img.shields.io/badge/go.dev-reference-brightgreen" alt="GoDoc"></a>
     <a href="https://github.com/twgh/xc-elementui/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-brightgreen" alt="License"></a>
@@ -8,6 +9,8 @@
     <a href="https://github.com/twgh/xc-elementui/tree/main/example">程序示例</a>&nbsp;&nbsp;
 	<a href="https://pkg.go.dev/github.com/twgh/xc-elementui">项目文档</a>&nbsp;&nbsp;
 </p>
+
+
 
 
 
@@ -21,7 +24,7 @@
 ## 获取
 
 ```bash
-go get -u github.com/twgh/xc-elementui
+go get -u github.com/twgh/xc-elementui@latest
 ```
 
 ## 动态链接库下载
@@ -137,7 +140,7 @@ const svg_element = `<svg t="1731392844936" class="icon" viewBox="0 0 1024 1024"
 ## 开发进度
 
 - [x] 按钮
-- [ ] 输入框
+- [x] 输入框
 - [ ] 单选框
 - [ ] 多选框
 - [ ] 开关按钮
