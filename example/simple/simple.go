@@ -2,6 +2,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/twgh/xc-elementui/eui"
 	"github.com/twgh/xcgui/app"
 	"github.com/twgh/xcgui/font"
@@ -9,17 +11,12 @@ import (
 	"github.com/twgh/xcgui/svg"
 	"github.com/twgh/xcgui/window"
 	"github.com/twgh/xcgui/xcc"
-	"time"
-)
-
-var (
-	a *app.App
-	w *window.Window
-	e *eui.Elementui
 )
 
 func main() {
-	a = app.New(true)
+	// 初始化界面库
+	app.InitOrExit()
+	a := app.New(true)
 	a.EnableAutoDPI(true).EnableDPI(true)
 	// 设置默认字体
 	a.SetDefaultFont(font.NewEX("微软雅黑", 10, xcc.FontStyle_Regular).Handle)
@@ -27,40 +24,42 @@ func main() {
 	a.SetWindowIcon(imagex.NewBySvgStringW(svg_element).Handle)
 
 	// 创建窗口
-	w = window.New(0, 0, 500, 400, "xc-elementui 简单例子", 0, xcc.Window_Style_Default|xcc.Window_Style_Drag_Window)
+	w := window.New(0, 0, 600, 400, "xc-elementui 简单例子", 0, xcc.Window_Style_Default|xcc.Window_Style_Drag_Window)
 	// 设置窗口边框大小
 	w.SetBorderSize(0, 32, 0, 0)
 	// 设置窗口阴影, 圆角
 	w.SetTransparentType(xcc.Window_Transparent_Shadow).SetShadowInfo(8, 255, 10, false, 0).SetTransparentAlpha(255)
 	// 窗口启用布局, 水平垂直居中, 自动换行, 行列间距10
 	w.EnableLayout(true).SetSpace(10).SetSpaceRow(10).SetAlignH(xcc.Layout_Align_Center).SetAlignV(xcc.Layout_Align_Center).EnableAutoWrap(true).SetPadding(4, 4, 4, 4)
+	// 窗口_置标题外间距, 设置标题内容(图标, 标题, 控制按钮)外间距.
+	w.SetCaptionMargin(3, 0, 0, 0)
 
 	// 创建Elementui对象
-	e = eui.NewElementui(12, w.GetDPI())
+	e := eui.NewElementui(12, w.GetDPI())
 	svgElement := svg.NewByStringW(svg_element).SetSize(20, 20)
 
 	// 按钮
 	{
 		// 默认按钮
-		e.CreateButton(0, 0, 0, 0, "默认按钮", w.Handle)
+		e.CreateButton("默认按钮", w.Handle)
 		// 主要按钮
-		e.CreateButton(0, 0, 0, 0, "主要按钮", w.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary})
+		e.CreateButton("主要按钮", w.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary})
 		// 图标+文字按钮 成功按钮
-		e.CreateButton(0, 0, 0, 0, "图标文字", w.Handle, eui.ButtonOption{IconName: "fa-house-medical-flag", Style: eui.ButtonStyle_Success})
+		e.CreateButton("图标文字", w.Handle, eui.ButtonOption{Icon: "fa-house-medical-flag", Style: eui.ButtonStyle_Success})
 		// 图标+文字按钮 信息按钮 朴素按钮
-		e.CreateButton(0, 0, 0, 0, "朴素按钮", w.Handle, eui.ButtonOption{IconName: "fa-jet-fighter", Style: eui.ButtonStyle_Info, IsPlain: true})
+		e.CreateButton("朴素按钮", w.Handle, eui.ButtonOption{Icon: "fa-jet-fighter", Style: eui.ButtonStyle_Info, IsPlain: true})
 		// 图标+文字按钮 禁用状态 警告按钮
-		e.CreateButton(0, 0, 0, 0, "禁用状态", w.Handle, eui.ButtonOption{IconName: "fa-wpexplorer", Style: eui.ButtonStyle_Warning}).Enable(false)
+		e.CreateButton("禁用状态", w.Handle, eui.ButtonOption{Icon: "fa-wpexplorer", Style: eui.ButtonStyle_Warning}).Enable(false)
 		// 图标+文字 圆角按钮 警告按钮
-		e.CreateButton(0, 0, 0, 0, "圆角按钮", w.Handle, eui.ButtonOption{IconName: "fa-circle-radiation", IsRound: true, Style: eui.ButtonStyle_Warning})
+		e.CreateButton("圆角按钮", w.Handle, eui.ButtonOption{Icon: "fa-circle-radiation", Style: eui.ButtonStyle_Warning}).SetRound(14)
 		// 图标按钮 危险按钮
-		e.CreateButton(0, 0, 56, 40, "", w.Handle, eui.ButtonOption{IconName: "fa-volcano", Style: eui.ButtonStyle_Danger})
+		e.CreateButton("", w.Handle, eui.ButtonOption{Icon: "fa-volcano", Style: eui.ButtonStyle_Danger, Width: 56, Height: 40})
 		// 圆形图标按钮 主要按钮
-		e.CreateButton(0, 0, 40, 40, "", w.Handle, eui.ButtonOption{IconName: "fa-text-height", IsCircle: true, Style: eui.ButtonStyle_Primary})
+		e.CreateButton("", w.Handle, eui.ButtonOption{Icon: "fa-text-height", IsCircle: true, Style: eui.ButtonStyle_Primary, Width: 40, Height: 40})
 
 		// 图标按钮 主要按钮 自定义svg图标 加载
-		btn := e.CreateButton(0, 0, 0, 0, "点我加载", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle, Style: eui.ButtonStyle_Primary})
-		btn.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+		btn := e.CreateButton("点我加载", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle, Style: eui.ButtonStyle_Primary})
+		btn.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 			btn.SetLoading(true, 0, "")
 			go func() {
 				time.Sleep(2 * time.Second)
@@ -78,21 +77,24 @@ func main() {
 		})
 
 		// 图标按钮 默认按钮 自定义svg图标
-		e.CreateButton(0, 0, 40, 40, "", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle})
+		e.CreateButton("", w.Handle, eui.ButtonOption{HSvg: svgElement.Handle, Width: 40, Height: 40})
 	}
 
 	// 编辑框
 	{
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{DefaultText: "圆角18"}).SetRound(18)
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{IconName: "fa-user", AutoColor: true, DefaultText: "图标+自动变色+直角"}).SetRound(0)
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{IconName: "fa-user", AutoColor: true, DefaultText: "图标+自动变色"}).SetRound(4)
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{IconName: "fa-regular fa-address-book", IsRight: true, DefaultText: "右边图标+不变色"})
+		e.CreateEdit(w.Handle, eui.EditOption{DefaultText: "请输入内容"})
+		e.CreateEdit(w.Handle, eui.EditOption{DefaultText: "请输入内容"}).SetRound(0)
+		e.CreateEdit(w.Handle, eui.EditOption{DefaultText: "禁用状态"}).Enable(false)
+		e.CreateEdit(w.Handle, eui.EditOption{DefaultText: "圆角12"}).SetRound(12)
+		e.CreateEdit(w.Handle, eui.EditOption{Icon: "fa-user", IsAutoColor: true, DefaultText: "图标+自动变色+直角"}).SetRound(0)
+		e.CreateEdit(w.Handle, eui.EditOption{Icon: "fa-user", IsAutoColor: true, DefaultText: "图标+自动变色"}).SetRound(4)
+		e.CreateEdit(w.Handle, eui.EditOption{Icon: "fa-regular fa-address-book", IsRight: true, DefaultText: "右边图标+不变色"})
 
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{HSvg: svgElement.Handle, AutoColor: true, DefaultText: "svg图标+自动变色"})
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{HSvg: svgElement.Handle, AutoColor: true, DefaultText: "svg图标+自动变色", IsRight: true})
+		e.CreateEdit(w.Handle, eui.EditOption{HSvg: svgElement.Handle, IsAutoColor: true, DefaultText: "svg图标+自动变色"})
+		e.CreateEdit(w.Handle, eui.EditOption{HSvg: svgElement.Handle, IsAutoColor: true, DefaultText: "svg图标+自动变色", IsRight: true})
 
 		hImage := app.NewImageBySvg(svg.NewByStringW(svg_element).SetSize(20, 20).Handle).Handle
-		e.CreateEdit(0, 0, 0, 0, w.Handle, eui.EditOption{HImage: hImage, DefaultText: "hImage不会自动变色"})
+		e.CreateEdit(w.Handle, eui.EditOption{HImage: hImage, DefaultText: "hImage不会自动变色"})
 	}
 
 	w.Show(true)

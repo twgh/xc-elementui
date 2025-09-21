@@ -1,20 +1,21 @@
 package eui
 
 import (
-	"github.com/twgh/xcgui/xc"
-	"github.com/twgh/xcgui/xcc"
 	"strconv"
 	"strings"
+
+	"github.com/twgh/xcgui/xc"
+	"github.com/twgh/xcgui/xcc"
 )
 
-// objBase 对象基类
+// objBase 对象基类.
 type objBase struct {
 	hFontAwesomeMap map[string]int // FontAwesome字体句柄
 	H               int            // 句柄.
 	dpi             int32          // 窗口dpi
 }
 
-// ClearIcon 清除掉已设置的 Font Awesome 图标, hsvg和himage.
+// ClearIcon 清除掉已设置的 Font Awesome 图标, hsvg 和 himage.
 func (o *objBase) ClearIcon() *objBase {
 	xc.XC_SetProperty(o.H, "element-icon-hsvg", "")
 	xc.XC_SetProperty(o.H, "element-icon-himage", "")
@@ -22,9 +23,9 @@ func (o *objBase) ClearIcon() *objBase {
 	return o
 }
 
-// SetHSvg 设置炫彩svg句柄.
+// SetHSvg 设置炫彩 svg 句柄.
 //
-// hSvg: 炫彩svg句柄.
+// hSvg: 炫彩 svg 句柄.
 func (o *objBase) SetHSvg(hSvg int) *objBase {
 	o.ClearIcon()
 	if hSvg > 0 && xc.XC_IsHXCGUI(hSvg, xcc.XC_SVG) {
@@ -33,7 +34,7 @@ func (o *objBase) SetHSvg(hSvg int) *objBase {
 	return o
 }
 
-// GetHSvg 获取已设置的炫彩svg句柄.
+// GetHSvg 获取已设置的炫彩 svg 句柄.
 func (o *objBase) GetHSvg() int {
 	hSvg, _ := strconv.Atoi(xc.XC_GetProperty(o.H, "element-icon-hsvg"))
 	return hSvg
@@ -56,39 +57,16 @@ func (o *objBase) GetHImage() int {
 	return hImage
 }
 
-// GetIconFa 获取已设置的 Font Awesome 图标.
-func (o *objBase) GetIconFa() string {
-	return xc.XC_GetProperty(o.H, "element-icon-fa")
-}
-
-// setIconFa 设置iconfa的相关信息.
-//
-// iconFaStr: Font Awesome 图标字符串.
-//
-// fontType: 字体类型, 可为'fa-solid', 'fa-brands', 'fa-regular'.
-func (o *objBase) setIconFa(iconFaStr, fontType string) *objBase {
-	o.ClearIcon()
-	xc.XC_SetProperty(o.H, "element-icon-fa", iconFaStr)
-	if iconFaStr != "" { // 确定字体句柄和字体显示大小
-		hFontAwesome := o.hFontAwesomeMap[fontType]
-		xc.XC_SetProperty(o.H, "element-hfontawesome", strconv.Itoa(hFontAwesome))
-		var hFontAwesomeShowSize xc.SIZE
-		xc.XC_GetTextShowSize(iconFaStr, 1, hFontAwesome, &hFontAwesomeShowSize)
-		xc.XC_SetProperty(o.H, "element-hfontawesome-showsize-cx", xc.Itoa(hFontAwesomeShowSize.CX))
-	}
-	return o
-}
-
 // SetIconName 设置 Font Wesome 图标名.
 //
 // iconName: Font Awesome 图标名.
 //   - 如'fa-solid fa-paw', 前面是风格, 后面是图标名, 用空格分开, 其中风格可省略, 没有风格时会自动根据'fa-solid', 'fa-brands', 'fa-regular'的顺序尝试添加风格.
-//   - 图标大全: https://fa6.dashgame.com, 在网页里点导航栏图标, 然后点免费, 可筛选出2000+免费图标, 点击图标会复制完整风格+图标名到剪贴板, 可直接使用. 内置FontAwesome版本为6.6.0
+//   - 图标大全: https://fa6.dashgame.com, 在网页里点导航栏图标, 然后点免费, 可筛选出 2000+ 免费图标, 点击图标会复制完整风格+图标名到剪贴板, 可直接使用. 内置 FontAwesome 版本为 6.6.0
 func (o *objBase) SetIconName(iconName string) *objBase {
 	// 删首尾空
 	iconName = strings.TrimSpace(iconName)
 	var iconFaStr, fontType string
-	// 判断IconName是否存在, 如不存在就尝试加上所有风格前缀, 有就使用
+	// 判断 IconName 是否存在, 如不存在就尝试加上所有风格前缀, 有就使用
 	var iconUnicode int32
 	var ok bool
 	iconName2 := iconName
@@ -115,15 +93,20 @@ func (o *objBase) SetIconName(iconName string) *objBase {
 	return o
 }
 
-// SetIconHex 设置 Font Awesome 图标对应的Unicode码点十六进制文本.
+// GetIconName 获取已设置的 Font Awesome 图标名.
+func (o *objBase) GetIconName() string {
+	return xc.XC_GetProperty(o.H, "element-icon-fa")
+}
+
+// SetIconHex 设置 Font Awesome 图标对应的 Unicode 码点十六进制文本.
 //
-// iconHex: Font Wesome 图标对应的Unicode码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
+// iconHex: Font Wesome 图标对应的 Unicode 码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
 func (o *objBase) SetIconHex(iconHex string) *objBase {
 	iconInt, _ := strconv.ParseInt(iconHex, 16, 32)
 	iconUnicode := int32(iconInt)
 	iconFaStr := string(iconUnicode)
 	var fontType string
-	// 遍历map找出图标name, 得到字体类型
+	// 遍历 map 找出图标 name, 得到字体类型
 	for name, value := range fontAwesomemMap {
 		if value == iconUnicode {
 			fontType = name
@@ -138,13 +121,13 @@ func (o *objBase) SetIconHex(iconHex string) *objBase {
 	return o
 }
 
-// SetIconUnicode 设置 Font Awesome 图标对应的Unicode码点十进制数字.
+// SetIconUnicode 设置 Font Awesome 图标对应的 Unicode 码点十进制数字.
 //
-// iconUnicode: Font Awesome 图标对应的Unicode码点十进制数字, 如61872相当于'fa-solid fa-paw'.
+// iconUnicode: Font Awesome 图标对应的 Unicode 码点十进制数字, 如 61872 相当于'fa-solid fa-paw'.
 func (o *objBase) SetIconUnicode(iconUnicode int32) *objBase {
 	iconFaStr := string(iconUnicode)
 	var fontType string
-	// 遍历map找出图标name, 得到字体类型
+	// 遍历 map 找出图标 name, 得到字体类型
 	for name, value := range fontAwesomemMap {
 		if value == iconUnicode {
 			fontType = name
@@ -156,5 +139,23 @@ func (o *objBase) SetIconUnicode(iconUnicode int32) *objBase {
 		}
 	}
 	o.setIconFa(iconFaStr, fontType)
+	return o
+}
+
+// setIconFa 设置 iconfa 的相关信息.
+//
+// iconFaStr: Font Awesome 图标字符串.
+//
+// fontType: 字体类型, 可为'fa-solid', 'fa-brands', 'fa-regular'.
+func (o *objBase) setIconFa(iconFaStr, fontType string) *objBase {
+	o.ClearIcon()
+	xc.XC_SetProperty(o.H, "element-icon-fa", iconFaStr)
+	if iconFaStr != "" { // 确定字体句柄和字体显示大小
+		hFontAwesome := o.hFontAwesomeMap[fontType]
+		xc.XC_SetProperty(o.H, "element-hfontawesome", strconv.Itoa(hFontAwesome))
+		var hFontAwesomeShowSize xc.SIZE
+		xc.XC_GetTextShowSize(iconFaStr, 1, hFontAwesome, &hFontAwesomeShowSize)
+		xc.XC_SetProperty(o.H, "element-hfontawesome-showsize-cx", xc.Itoa(hFontAwesomeShowSize.CX))
+	}
 	return o
 }

@@ -2,6 +2,9 @@
 package main
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/twgh/xc-elementui/eui"
 	"github.com/twgh/xcgui/app"
 	"github.com/twgh/xcgui/font"
@@ -11,18 +14,12 @@ import (
 	"github.com/twgh/xcgui/window"
 	"github.com/twgh/xcgui/xc"
 	"github.com/twgh/xcgui/xcc"
-	"math/rand"
-	"time"
-)
-
-var (
-	a *app.App
-	w *window.Window
-	e *eui.Elementui
 )
 
 func main() {
-	a = app.New(true)
+	// 初始化界面库
+	app.InitOrExit()
+	a := app.New(true)
 	a.EnableAutoDPI(true).EnableDPI(true)
 	// 设置默认字体
 	a.SetDefaultFont(font.NewEX("微软雅黑", 10, xcc.FontStyle_Regular).Handle)
@@ -30,25 +27,27 @@ func main() {
 	a.SetWindowIcon(imagex.NewBySvgStringW(svg_element).Handle)
 
 	// 创建窗口
-	w = window.New(0, 0, 740, 696, "xc-elementui 按钮例子", 0, xcc.Window_Style_Default|xcc.Window_Style_Drag_Window)
+	w := window.New(0, 0, 740, 696, "xc-elementui 按钮例子", 0, xcc.Window_Style_Default|xcc.Window_Style_Drag_Window)
 	// 设置窗口边框
 	w.SetBorderSize(0, 32, 0, 0)
 	// 设置窗口阴影, 圆角
 	w.SetTransparentType(xcc.Window_Transparent_Shadow).SetShadowInfo(8, 255, 10, false, 0).SetTransparentAlpha(255)
 	// 窗口启用布局, 水平垂直居中, 行列间距10
 	w.EnableLayout(true).SetSpace(10).SetSpaceRow(10).SetAlignH(xcc.Layout_Align_Center).SetAlignV(xcc.Layout_Align_Center)
+	// 窗口_置标题外间距, 设置标题内容(图标, 标题, 控制按钮)外间距.
+	w.SetCaptionMargin(3, 0, 0, 0)
 
-	// 创建Elementui对象
-	e = eui.NewElementui(12, w.GetDPI())
+	// 创建 Elementui 对象
+	e := eui.NewElementui(12, w.GetDPI())
 	// 创建按钮
-	createButton(w.Handle)
+	createButton(w.Handle, e)
 
 	a.ShowAndRun(w.Handle)
 	a.Exit()
 }
 
 // 创建按钮
-func createButton(hParent int) {
+func createButton(hParent int, e *eui.Elementui) {
 	// 基础按钮
 	{
 		layout := widget.NewLayoutEle(0, 0, 0, 0, hParent)
@@ -57,133 +56,133 @@ func createButton(hParent int) {
 		layout.SetSpace(10).SetSpaceRow(10).SetAlignV(xcc.Layout_Align_Center)
 		{
 			// 默认按钮
-			e.CreateButton(0, 0, 0, 0, "默认按钮", layout.Handle)
+			e.CreateButton("默认按钮", layout.Handle)
 			// 主要按钮
-			e.CreateButton(0, 0, 0, 0, "主要按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary})
+			e.CreateButton("主要按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary})
 			// 成功按钮
-			e.CreateButton(0, 0, 0, 0, "成功按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Success})
+			e.CreateButton("成功按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Success})
 			// 信息按钮
-			e.CreateButton(0, 0, 0, 0, "信息按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Info})
+			e.CreateButton("信息按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Info})
 			// 警告按钮
-			e.CreateButton(0, 0, 0, 0, "警告按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Warning})
+			e.CreateButton("警告按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Warning})
 			// 危险按钮
-			e.CreateButton(0, 0, 0, 0, "危险按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Danger})
+			e.CreateButton("危险按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Danger})
 		}
 
 		{
 			// 图标+文字按钮 默认按钮
-			e.CreateButton(0, 0, 0, 0, "图标文字", layout.Handle, eui.ButtonOption{IconName: "fa-copyright"}).LayoutItem_EnableWrap(true)
+			e.CreateButton("图标文字", layout.Handle, eui.ButtonOption{Icon: "fa-copyright"}).LayoutItem_EnableWrap(true)
 			// 图标+文字按钮 主要按钮
-			e.CreateButton(0, 0, 0, 0, "图标文字", layout.Handle, eui.ButtonOption{IconName: "fa-house-medical-flag", Style: eui.ButtonStyle_Primary})
+			e.CreateButton("图标文字", layout.Handle, eui.ButtonOption{Icon: "fa-house-medical-flag", Style: eui.ButtonStyle_Primary})
 			// 图标+文字按钮 成功按钮
-			e.CreateButton(0, 0, 0, 0, "图标文字", layout.Handle, eui.ButtonOption{IconName: "fa-address-card", Style: eui.ButtonStyle_Success})
+			e.CreateButton("图标文字", layout.Handle, eui.ButtonOption{Icon: "fa-address-card", Style: eui.ButtonStyle_Success})
 			// 图标+文字按钮 信息按钮
-			e.CreateButton(0, 0, 0, 0, "图标文字", layout.Handle, eui.ButtonOption{IconName: "fa-jet-fighter", Style: eui.ButtonStyle_Info})
+			e.CreateButton("图标文字", layout.Handle, eui.ButtonOption{Icon: "fa-jet-fighter", Style: eui.ButtonStyle_Info})
 			// 图标+文字按钮 警告按钮
-			e.CreateButton(0, 0, 0, 0, "图标文字", layout.Handle, eui.ButtonOption{IconName: "fa-chart-pie", Style: eui.ButtonStyle_Warning})
+			e.CreateButton("图标文字", layout.Handle, eui.ButtonOption{Icon: "fa-chart-pie", Style: eui.ButtonStyle_Warning})
 			// 图标+文字按钮 危险按钮
-			e.CreateButton(0, 0, 0, 0, "图标文字", layout.Handle, eui.ButtonOption{IconName: "fa-road-circle-exclamation", Style: eui.ButtonStyle_Danger})
+			e.CreateButton("图标文字", layout.Handle, eui.ButtonOption{Icon: "fa-road-circle-exclamation", Style: eui.ButtonStyle_Danger})
 		}
 
 		{
 			// 图标+文字按钮 默认按钮 朴素按钮
-			e.CreateButton(0, 0, 0, 0, "朴素按钮", layout.Handle, eui.ButtonOption{IconName: "fa-copyright", IsPlain: true}).LayoutItem_EnableWrap(true)
+			e.CreateButton("朴素按钮", layout.Handle, eui.ButtonOption{Icon: "fa-copyright", IsPlain: true}).LayoutItem_EnableWrap(true)
 			// 图标+文字按钮 主要按钮 朴素按钮
-			e.CreateButton(0, 0, 0, 0, "朴素按钮", layout.Handle, eui.ButtonOption{IconName: "fa-house-medical-flag", Style: eui.ButtonStyle_Primary, IsPlain: true})
+			e.CreateButton("朴素按钮", layout.Handle, eui.ButtonOption{Icon: "fa-house-medical-flag", Style: eui.ButtonStyle_Primary, IsPlain: true})
 			// 图标+文字按钮 成功按钮 朴素按钮
-			e.CreateButton(0, 0, 0, 0, "朴素按钮", layout.Handle, eui.ButtonOption{IconName: "fa-address-card", Style: eui.ButtonStyle_Success, IsPlain: true})
+			e.CreateButton("朴素按钮", layout.Handle, eui.ButtonOption{Icon: "fa-address-card", Style: eui.ButtonStyle_Success, IsPlain: true})
 			// 图标+文字按钮 信息按钮 朴素按钮
-			e.CreateButton(0, 0, 0, 0, "朴素按钮", layout.Handle, eui.ButtonOption{IconName: "fa-jet-fighter", Style: eui.ButtonStyle_Info, IsPlain: true})
+			e.CreateButton("朴素按钮", layout.Handle, eui.ButtonOption{Icon: "fa-jet-fighter", Style: eui.ButtonStyle_Info, IsPlain: true})
 			// 图标+文字按钮 警告按钮 朴素按钮
-			e.CreateButton(0, 0, 0, 0, "朴素按钮", layout.Handle, eui.ButtonOption{IconName: "fa-chart-pie", Style: eui.ButtonStyle_Warning, IsPlain: true})
+			e.CreateButton("朴素按钮", layout.Handle, eui.ButtonOption{Icon: "fa-chart-pie", Style: eui.ButtonStyle_Warning, IsPlain: true})
 			// 图标+文字按钮 危险按钮 朴素按钮
-			e.CreateButton(0, 0, 0, 0, "朴素按钮", layout.Handle, eui.ButtonOption{IconName: "fa-road-circle-exclamation", Style: eui.ButtonStyle_Danger, IsPlain: true})
+			e.CreateButton("朴素按钮", layout.Handle, eui.ButtonOption{Icon: "fa-road-circle-exclamation", Style: eui.ButtonStyle_Danger, IsPlain: true})
 		}
 
 		{
 			// 图标+文字按钮 禁用状态 默认按钮
-			e.CreateButton(0, 0, 0, 0, "禁用状态", layout.Handle, eui.ButtonOption{IconName: "fa-copy"}).Enable(false).LayoutItem_EnableWrap(true)
+			e.CreateButton("禁用状态", layout.Handle, eui.ButtonOption{Icon: "fa-copy"}).Enable(false).LayoutItem_EnableWrap(true)
 			// 图标+文字按钮 禁用状态 主要按钮
-			e.CreateButton(0, 0, 0, 0, "禁用状态", layout.Handle, eui.ButtonOption{IconName: "fa-italic", Style: eui.ButtonStyle_Primary}).Enable(false)
+			e.CreateButton("禁用状态", layout.Handle, eui.ButtonOption{Icon: "fa-italic", Style: eui.ButtonStyle_Primary}).Enable(false)
 			// 图标+文字按钮 禁用状态 成功按钮
-			e.CreateButton(0, 0, 0, 0, "禁用状态", layout.Handle, eui.ButtonOption{IconName: "fa-location-dot", Style: eui.ButtonStyle_Success}).Enable(false)
+			e.CreateButton("禁用状态", layout.Handle, eui.ButtonOption{Icon: "fa-location-dot", Style: eui.ButtonStyle_Success}).Enable(false)
 			// 图标+文字按钮 禁用状态 信息按钮
-			e.CreateButton(0, 0, 0, 0, "禁用状态", layout.Handle, eui.ButtonOption{IconName: "fa-invision", Style: eui.ButtonStyle_Info}).Enable(false)
+			e.CreateButton("禁用状态", layout.Handle, eui.ButtonOption{Icon: "fa-invision", Style: eui.ButtonStyle_Info}).Enable(false)
 			// 图标+文字按钮 禁用状态 警告按钮
-			e.CreateButton(0, 0, 0, 0, "禁用状态", layout.Handle, eui.ButtonOption{IconName: "fa-wpexplorer", Style: eui.ButtonStyle_Warning}).Enable(false)
+			e.CreateButton("禁用状态", layout.Handle, eui.ButtonOption{Icon: "fa-wpexplorer", Style: eui.ButtonStyle_Warning}).Enable(false)
 			// 图标+文字按钮 禁用状态 危险按钮
-			e.CreateButton(0, 0, 0, 0, "禁用状态", layout.Handle, eui.ButtonOption{IconName: "fa-house-lock", Style: eui.ButtonStyle_Danger}).Enable(false)
+			e.CreateButton("禁用状态", layout.Handle, eui.ButtonOption{Icon: "fa-house-lock", Style: eui.ButtonStyle_Danger}).Enable(false)
 		}
 
 		{
 			// 图标+文字 圆角按钮 默认按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IconName: "fa-file-export", IsRound: true}).LayoutItem_EnableWrap(true)
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Icon: "fa-file-export"}).SetRound(14).LayoutItem_EnableWrap(true)
 			// 图标+文字 圆角按钮 主要按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IconName: "fa-z", IsRound: true, Style: eui.ButtonStyle_Primary})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Icon: "fa-z", Style: eui.ButtonStyle_Primary}).SetRound(14)
 			// 图标+文字 圆角按钮 成功按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IconName: "fa-apple", IsRound: true, Style: eui.ButtonStyle_Success})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Icon: "fa-apple", Style: eui.ButtonStyle_Success}).SetRound(14)
 			// 图标+文字 圆角按钮 信息按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IconName: "fa-face-kiss-beam", IsRound: true, Style: eui.ButtonStyle_Info})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Icon: "fa-face-kiss-beam", Style: eui.ButtonStyle_Info}).SetRound(14)
 			// 图标+文字 圆角按钮 警告按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IconName: "fa-circle-radiation", IsRound: true, Style: eui.ButtonStyle_Warning})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Icon: "fa-circle-radiation", Style: eui.ButtonStyle_Warning}).SetRound(14)
 			// 图标+文字 圆角按钮 危险按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IconName: "fa-wifi", IsRound: true, Style: eui.ButtonStyle_Danger})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Icon: "fa-wifi", Style: eui.ButtonStyle_Danger}).SetRound(14)
 		}
 
 		{
 			// 文字圆角按钮 默认按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IsRound: true}).LayoutItem_EnableWrap(true)
+			e.CreateButton("圆角按钮", layout.Handle).SetRound(14).LayoutItem_EnableWrap(true)
 			// 文字圆角按钮 主要按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IsRound: true, Style: eui.ButtonStyle_Primary})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Primary}).SetRound(14)
 			// 文字圆角按钮 成功按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IsRound: true, Style: eui.ButtonStyle_Success})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Success}).SetRound(14)
 			// 文字圆角按钮 信息按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IsRound: true, Style: eui.ButtonStyle_Info})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Info}).SetRound(14)
 			// 文字圆角按钮 警告按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IsRound: true, Style: eui.ButtonStyle_Warning})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Warning}).SetRound(14)
 			// 文字圆角按钮 危险按钮
-			e.CreateButton(0, 0, 0, 0, "圆角按钮", layout.Handle, eui.ButtonOption{IsRound: true, Style: eui.ButtonStyle_Danger})
+			e.CreateButton("圆角按钮", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Danger}).SetRound(14)
 		}
 
 		{
 			// 图标按钮 默认按钮
-			e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-regular fa-copyright"}).LayoutItem_EnableWrap(true)
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-regular fa-copyright", Width: 56, Height: 40}).LayoutItem_EnableWrap(true)
 			// 图标按钮 主要按钮
-			e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-buffer", Style: eui.ButtonStyle_Primary})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-buffer", Style: eui.ButtonStyle_Primary, Width: 56, Height: 40})
 			// 图标按钮 成功按钮
-			e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-building-un", Style: eui.ButtonStyle_Success})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-building-un", Style: eui.ButtonStyle_Success, Width: 56, Height: 40})
 			// 图标按钮 信息按钮
-			e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-file-code", Style: eui.ButtonStyle_Info})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-file-code", Style: eui.ButtonStyle_Info, Width: 56, Height: 40})
 			// 图标按钮 警告按钮
-			e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-hand-lizard", Style: eui.ButtonStyle_Warning})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-hand-lizard", Style: eui.ButtonStyle_Warning, Width: 56, Height: 40})
 			// 图标按钮 危险按钮
-			e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-volcano", Style: eui.ButtonStyle_Danger})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-volcano", Style: eui.ButtonStyle_Danger, Width: 56, Height: 40})
 		}
 
 		{
 			// 圆形图标按钮 默认按钮
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-magnifying-glass", IsCircle: true}).LayoutItem_EnableWrap(true)
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-magnifying-glass", IsCircle: true, Width: 40, Height: 40}).LayoutItem_EnableWrap(true)
 			// 圆形图标按钮 主要按钮
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-text-height", IsCircle: true, Style: eui.ButtonStyle_Primary})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-text-height", IsCircle: true, Style: eui.ButtonStyle_Primary, Width: 40, Height: 40})
 			// 圆形图标按钮 成功按钮
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-square-poll-vertical", IsCircle: true, Style: eui.ButtonStyle_Success})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-square-poll-vertical", IsCircle: true, Style: eui.ButtonStyle_Success, Width: 40, Height: 40})
 			// 圆形图标按钮 信息按钮
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-arrow-right-to-bracket", IsCircle: true, Style: eui.ButtonStyle_Info})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-arrow-right-to-bracket", IsCircle: true, Style: eui.ButtonStyle_Info, Width: 40, Height: 40})
 			// 圆形图标按钮 警告按钮
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-pump-medical", IsCircle: true, Style: eui.ButtonStyle_Warning})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-pump-medical", IsCircle: true, Style: eui.ButtonStyle_Warning, Width: 40, Height: 40})
 			// 圆形图标按钮 危险按钮
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{IconName: "fa-gear", IsCircle: true, Style: eui.ButtonStyle_Danger})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Icon: "fa-gear", IsCircle: true, Style: eui.ButtonStyle_Danger, Width: 40, Height: 40})
 		}
 
 		{ // 改变现有按钮
 			// 普通按钮 改变为 图标+文字 圆角按钮 默认按钮
 			btn := widget.NewButton(0, 0, 100, 30, "现有按钮", layout.Handle)
-			e.ChangeButton(btn.Handle, eui.ButtonOption{Size: eui.ButtonSize_Default}).LayoutItem_EnableWrap(true)
+			e.ChangeButton(btn.Handle, eui.ButtonOption{Icon: "fa-gear", Size: eui.ButtonSize_Default}).SetRound(14).LayoutItem_EnableWrap(true)
 
 			// 点击改变按钮样式
-			btn1 := e.CreateButton(0, 0, 0, 0, "随机变样式", layout.Handle)
+			btn1 := e.CreateButton("随机变样式", layout.Handle)
 			rand.Seed(time.Now().UnixNano())
-			btn1.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn1.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn1.SetStyle(rand.Intn(7))
 				return 0
 			})
@@ -191,17 +190,17 @@ func createButton(hParent int) {
 
 		{
 			svgDel := svg.NewByStringW(svg_del).SetSize(20, 20)
-			// 图标按钮 默认按钮 自定义svg图标
-			btn0 := e.CreateButton(0, 0, 56, 40, "", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle})
+			// 图标按钮 默认按钮 自定义 svg 图标
+			btn0 := e.CreateButton("", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Width: 56, Height: 40})
 			btn0.LayoutItem_EnableWrap(true)
-			btn0.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn0.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn0.SetLoading(true, 0, "")
 				go func() {
 					time.Sleep(2 * time.Second)
 					/*
 						在这里做一些加载数据的操作, 比如读取数据库数据
 					*/
-					a.CallUT(func() {
+					app.CallUT(func() {
 						/*
 							拿到数据库数据后, 如果要赋予ui元素数据, 要在这里操作ui元素
 						*/
@@ -212,8 +211,8 @@ func createButton(hParent int) {
 			})
 
 			// 圆形图标按钮 危险按钮 自定义svg图标
-			btn4 := e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Danger, IsCircle: true})
-			btn4.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn4 := e.CreateButton("", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Danger, IsCircle: true, Width: 40, Height: 40})
+			btn4.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn4.SetLoading(true, 0, "")
 				go func() {
 					time.Sleep(2 * time.Second)
@@ -225,8 +224,8 @@ func createButton(hParent int) {
 			})
 
 			// 图标+文字按钮 默认按钮 自定义svg图标
-			btn1 := e.CreateButton(0, 0, 0, 0, "svg图标", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle})
-			btn1.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn1 := e.CreateButton("svg图标", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle})
+			btn1.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn1.SetLoading(true, 0, "加载中")
 				go func() {
 					time.Sleep(2 * time.Second)
@@ -239,8 +238,8 @@ func createButton(hParent int) {
 
 			// 图标+文字按钮 默认按钮 自定义炫彩图片句柄 这个图标颜色不会随按钮风格变化
 			img1 := imagex.NewBySvgStringW(svg_del)
-			btn2 := e.CreateButton(0, 0, 0, 0, "炫彩图片", layout.Handle, eui.ButtonOption{HImage: img1.Handle})
-			btn2.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn2 := e.CreateButton("炫彩图片", layout.Handle, eui.ButtonOption{HImage: img1.Handle})
+			btn2.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn2.SetLoading(true, 0, "加载中")
 				go func() {
 					time.Sleep(2 * time.Second)
@@ -252,8 +251,8 @@ func createButton(hParent int) {
 			})
 
 			// 图标+文字按钮 警告按钮 自定义svg图标
-			btn3 := e.CreateButton(0, 0, 0, 0, "点我加载", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Primary})
-			btn3.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn3 := e.CreateButton("点我加载", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Primary})
+			btn3.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn3.SetLoading(true, 0, "加载中")
 				go func() {
 					time.Sleep(2 * time.Second)
@@ -265,8 +264,8 @@ func createButton(hParent int) {
 			})
 
 			// 图标+文字按钮 警告按钮 朴素按钮 自定义svg图标
-			btn5 := e.CreateButton(0, 0, 0, 0, "点我加载", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Warning, IsPlain: true})
-			btn5.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn5 := e.CreateButton("点我加载", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Warning, IsPlain: true})
+			btn5.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn5.SetLoading(true, 0, "")
 				go func() {
 					time.Sleep(2 * time.Second)
@@ -278,8 +277,8 @@ func createButton(hParent int) {
 			})
 
 			// 图标+文字按钮 无边框无背景按钮按钮 自定义svg图标
-			btn6 := e.CreateButton(0, 0, 100, 40, "点我加载", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Text})
-			btn6.Event_BnClick1(func(hEle int, pbHandled *bool) int {
+			btn6 := e.CreateButton("点我加载", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Style: eui.ButtonStyle_Text, Width: 100, Height: 40})
+			btn6.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn6.SetLoading(true, 0, "")
 				go func() {
 					time.Sleep(2 * time.Second)
@@ -301,20 +300,20 @@ func createButton(hParent int) {
 
 		{ // 正常状态
 			// 文字按钮
-			e.CreateButton(0, 0, 120, 40, "无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text})
+			e.CreateButton("无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, Width: 120, Height: 40})
 			// 图标+文字
-			e.CreateButton(0, 0, 120, 40, "无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, IconName: "fa-leaf"})
+			e.CreateButton("无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, Icon: "fa-leaf", Width: 120, Height: 40})
 			// 只有图标
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, IconName: "fa-paw"})
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, Icon: "fa-paw", Width: 40, Height: 40})
 		}
 
 		{ // 禁用状态
 			// 文字按钮
-			e.CreateButton(0, 0, 120, 40, "无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text}).Enable(false).LayoutItem_EnableWrap(true)
+			e.CreateButton("无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, Width: 120, Height: 40}).Enable(false).LayoutItem_EnableWrap(true)
 			// 图标+文字
-			e.CreateButton(0, 0, 120, 40, "无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, IconName: "fa-leaf"}).Enable(false)
+			e.CreateButton("无边框无背景", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, Icon: "fa-leaf", Width: 120, Height: 40}).Enable(false)
 			// 只有图标
-			e.CreateButton(0, 0, 40, 40, "", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, IconName: "fa-paw"}).Enable(false)
+			e.CreateButton("", layout.Handle, eui.ButtonOption{Style: eui.ButtonStyle_Text, Icon: "fa-paw", Width: 40, Height: 40}).Enable(false)
 		}
 	}
 }

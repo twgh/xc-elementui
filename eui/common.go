@@ -1,45 +1,33 @@
 package eui
 
 import (
-	"github.com/twgh/xcgui/xc"
 	"strconv"
+	"strings"
+
+	"github.com/twgh/xcgui/common"
 )
 
-// 抗锯齿+网格拟合
-const TextRenderingHintAntiAliasGridFit int32 = 3
-
-// OffsetRect 传入 xc.RECT, 返回偏移后的 xc.RECT.
-func OffsetRect(rc xc.RECT, left, top, right, bottom int32) xc.RECT {
-	var rc2 xc.RECT
-	rc2.Left = rc.Left + left
-	rc2.Top = rc.Top + top
-	rc2.Right = rc.Right + right
-	rc2.Bottom = rc.Bottom + bottom
-	return rc2
-}
-
-// Bool2Str 将 bool 类型转换到文本 true 或 false.
-func Bool2Str(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
-}
-
-// Str2Bool 将文本类型的 true 或 false 转换到 bool 类型.
-func Str2Bool(s string) bool {
-	return s == "true"
-}
-
-// Xchar 传入Unicode码点转换到字符. 如20013是'中'.
+// Xchar 传入 Unicode 码点转换到字符. 如 20013 是'中'.
 func Xchar(UnicodePoint int32) string {
 	return string(UnicodePoint)
 }
 
-// Xchar2 传入Unicode码点十六进制文本转换到字符. 如4E2D是'中'.
+// Xchar2 传入 Unicode 码点十六进制文本转换到字符. 如 4E2D 是'中'.
 func Xchar2(UnicodePointHex string) string {
 	decimal, _ := strconv.ParseInt(UnicodePointHex, 16, 32)
 	return string(int32(decimal))
+}
+
+// JoinColorString 将颜色数组拼接成字符串, 以英文逗号分割.
+func JoinColorString(colors ...uint32) string {
+	var sb strings.Builder
+	for i, color := range colors {
+		if i > 0 {
+			sb.WriteString(",")
+		}
+		sb.WriteString(common.Uint32ToA(color))
+	}
+	return sb.String()
 }
 
 const (

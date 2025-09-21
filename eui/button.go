@@ -1,96 +1,57 @@
 package eui
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/twgh/xcgui/ani"
+	"github.com/twgh/xcgui/common"
 	"github.com/twgh/xcgui/widget"
 	"github.com/twgh/xcgui/xc"
 	"github.com/twgh/xcgui/xcc"
-	"strconv"
-	"strings"
 )
 
-// Button is elementui-Button, 继承 widget.Button.
+// Button 是 Elementui 风格的按钮, 继承 widget.Button.
 type Button struct {
 	widget.Button
 	objBase
 }
 
-// CreateButton 创建按钮, 本函数会自己注册元素绘制事件进行绘制.
-//
-// x: 左边.
-//
-// y: 顶边.
-//
-// cx: 宽度. 大于0时 ButtonOption 按钮选项中的Size字段无效.
-//
-// cy: 高度. 大于0时 ButtonOption 按钮选项中的Size字段无效.
+// CreateButton 创建按钮.
+//   - 内存注册了元素绘制事件.
 //
 // text: 文本.
 //
 // hParent: 父元素或父窗口句柄.
 //
 // opts: ButtonOption 按钮选项, 可不填.
-func (e *Elementui) CreateButton(x, y, cx, cy int32, text string, hParent int, opts ...ButtonOption) *Button {
-	var opt ButtonOption
-	if len(opts) > 0 {
-		opt = opts[0]
-	}
-	if opt.Style < ButtonStyle_Default || opt.Style > ButtonStyle_Text {
-		opt.Style = ButtonStyle_Default
-	}
-	if opt.Size < ButtonSize_Default || opt.Size > ButtonSize_Mini {
-		opt.Size = ButtonSize_Default
-	}
-
-	// 创建按钮
-	btn := &Button{}
-	btn.hFontAwesomeMap = e.hFontAwesomeMap
-	btn.dpi = e.dpi
-	btn.SetHandle(xc.XBtn_Create(x, y, cx, cy, text, hParent))
-	btn.H = btn.Handle
-	// 设置大小
-	if cx < 1 && cy < 1 {
-		btn.SetSizeEle(opt.Size)
-	}
-
-	// 启用背景透明
-	btn.EnableBkTransparent(true)
-	// 设置是否圆角按钮
-	btn.SetRound(opt.IsRound)
-	// 设置是否圆形按钮
-	btn.SetCircle(opt.IsCircle)
-	// 设置是否朴素按钮
-	btn.SetPlain(opt.IsPlain)
-	// 设置样式
-	btn.SetStyle(opt.Style)
-
-	// 自定义炫彩svg句柄优先级最高, 其次是炫彩图片句柄, 再然后是iconFa
-	if opt.HSvg > 0 && xc.XC_IsHXCGUI(opt.HSvg, xcc.XC_SVG) {
-		btn.SetHSvg(opt.HSvg)
-	} else if opt.HImage > 0 && xc.XC_IsHXCGUI(opt.HImage, xcc.XC_IMAGE_FRAME) {
-		btn.SetHImage(opt.HImage)
-	} else { // 确定iconFa图标和字体类型
-		if opt.IconUnicode > 0 {
-			btn.SetIconUnicode(opt.IconUnicode)
-		} else if opt.IconHex != "" {
-			btn.SetIconHex(opt.IconHex)
-		} else if opt.IconName != "" {
-			btn.SetIconName(opt.IconName)
-		}
-	}
-
-	// 注册元素绘制事件
-	btn.Event_PAINT1(onDrawEle)
-	return btn
+func (e *Elementui) CreateButton(text string, hParent int, opts ...ButtonOption) *Button {
+	return updateButton(e, false, text, hParent, 0, opts...)
 }
 
-// ChangeButton 改变现有的按钮. 可配合界面设计器来使用, 设计器里放按钮, 然后在代码里调用改变样式.
+// ChangeButton 改变现有的按钮.
+//   - 可配合界面设计器来使用, 设计器里放按钮, 然后在代码里调用改变样式.
 //
-// hBtn: 按钮句柄. 如果不是按钮句柄, 函数会返回nil.
+// hBtn: 按钮句柄. 如果不是按钮句柄, 函数会返回 nil.
 //
-// opts: ButtonOption 按钮选项, 可不填. 只有填写了其中的Size字段, 才会改变现有按钮的宽高.
+// opts: ButtonOption 按钮选项, 可不填. 只有填写了其中的 Size 字段, 才会改变现有按钮的宽高.
 func (e *Elementui) ChangeButton(hBtn int, opts ...ButtonOption) *Button {
-	if xc.XC_GetObjectType(hBtn) != xcc.XC_BUTTON {
+	return updateButton(e, true, "", 0, hBtn, opts...)
+}
+
+// 修改按钮.
+//
+// isChange: true 是改变模式, false 是创建模式.
+//
+// text: 文本. [创建模式]
+//
+// hParent: 父元素或父窗口句柄. [创建模式]
+//
+// hBtn: 按钮句柄. 如果不是按钮句柄, 函数会返回 nil. [改变模式]
+//
+// opts: ButtonOption 按钮选项, 可不填.
+func updateButton(e *Elementui, isChange bool, text string, hParent, hBtn int, opts ...ButtonOption) *Button {
+	if isChange && xc.XC_GetObjectType(hBtn) != xcc.XC_BUTTON {
 		return nil
 	}
 	var opt ButtonOption
@@ -100,38 +61,52 @@ func (e *Elementui) ChangeButton(hBtn int, opts ...ButtonOption) *Button {
 	if opt.Style < ButtonStyle_Default || opt.Style > ButtonStyle_Text {
 		opt.Style = ButtonStyle_Default
 	}
+	if !isChange && opt.Size < ButtonSize_Default || opt.Size > ButtonSize_Mini {
+		opt.Size = ButtonSize_Default
+	}
 
-	// 创建element按钮对象
+	// 创建按钮对象
 	btn := &Button{}
 	btn.hFontAwesomeMap = e.hFontAwesomeMap
 	btn.dpi = e.dpi
+	if !isChange {
+		hBtn = xc.XBtn_Create(opt.X, opt.Y, opt.Width, opt.Height, text, hParent)
+	}
 	btn.SetHandle(hBtn)
-	// 正确填写Size时才改变按钮的宽高
-	btn.SetSizeEle(opt.Size)
+	btn.H = btn.Handle
+	if isChange {
+		// 正确填写 Size 时才改变宽高
+		btn.SetSizeEle(opt.Size)
+	} else {
+		// 设置大小
+		if opt.Width < 1 && opt.Height < 1 {
+			btn.SetSizeEle(opt.Size)
+		}
+	}
 
 	// 启用背景透明
 	btn.EnableBkTransparent(true)
-	// 设置是否圆角按钮
-	btn.SetRound(opt.IsRound)
+	// 设置圆角大小
+	btn.SetRound(4)
 	// 设置是否圆形按钮
-	btn.SetCircle(opt.IsCircle)
+	btn.EnableCircle(opt.IsCircle)
 	// 设置是否朴素按钮
-	btn.SetPlain(opt.IsPlain)
+	btn.EnablePlain(opt.IsPlain)
 	// 设置样式
 	btn.SetStyle(opt.Style)
 
-	// 自定义炫彩svg句柄优先级最高, 其次是炫彩图片句柄, 再然后是iconFa
+	// 自定义炫彩 svg 句柄优先级最高, 其次是炫彩图片句柄, 再然后是 iconFa
 	if opt.HSvg > 0 && xc.XC_IsHXCGUI(opt.HSvg, xcc.XC_SVG) {
 		btn.SetHSvg(opt.HSvg)
 	} else if opt.HImage > 0 && xc.XC_IsHXCGUI(opt.HImage, xcc.XC_IMAGE_FRAME) {
 		btn.SetHImage(opt.HImage)
-	} else { // 确定iconFa图标和字体类型
+	} else { // 确定 iconFa 图标和字体类型
 		if opt.IconUnicode > 0 {
 			btn.SetIconUnicode(opt.IconUnicode)
 		} else if opt.IconHex != "" {
 			btn.SetIconHex(opt.IconHex)
-		} else if opt.IconName != "" {
-			btn.SetIconName(opt.IconName)
+		} else if opt.Icon != "" {
+			btn.SetIconName(opt.Icon)
 		}
 	}
 
@@ -144,9 +119,9 @@ func (e *Elementui) ChangeButton(hBtn int, opts ...ButtonOption) *Button {
 //
 // on: 是否启用.
 //
-// svgSize: 图标大小, 小于1时默认为20.
+// svgSize: 图标大小, 小于 1 时默认为 20.
 //
-// text: 同时更改加载中按钮的文本, on参数为true时生效，加载状态结束后自动恢复原文本, 如果为空则不会更改按钮文本.
+// text: 同时更改加载中按钮的文本, on 参数为 true 时生效，加载状态结束后自动恢复原文本, 如果为空则不会更改按钮文本.
 func (b *Button) SetLoading(on bool, svgSize int32, text string) *Button {
 	hAni, _ := strconv.Atoi(b.GetProperty("element-hani"))
 	if on {
@@ -163,12 +138,12 @@ func (b *Button) SetLoading(on bool, svgSize int32, text string) *Button {
 		// 设置加载中图标
 		hSvg_loading := xc.XSvg_LoadStringW(svg_loading)
 		if hSvg_loading > 0 && xc.XC_IsHXCGUI(hSvg_loading, xcc.XC_SVG) {
-			// 设置svg大小
+			// 设置 svg 大小
 			if svgSize < 1 {
 				svgSize = 20
 			}
 			xc.XSvg_SetSize(hSvg_loading, svgSize, svgSize)
-			// 记录旧svg图标，设置加载中svg图标
+			// 记录旧 svg 图标，设置加载中 svg 图标
 			b.SetProperty("element-icon-hsvg-old", b.GetProperty("element-icon-hsvg"))
 			b.SetProperty("element-icon-hsvg", strconv.Itoa(hSvg_loading))
 			// 创建动画序列
@@ -184,7 +159,7 @@ func (b *Button) SetLoading(on bool, svgSize int32, text string) *Button {
 				hSvg_loading, _ := strconv.Atoi(b.GetProperty("element-icon-hsvg"))
 				if hSvg_loading > 0 && xc.XC_IsHXCGUI(hSvg_loading, xcc.XC_SVG) {
 					xc.XSvg_Destroy(hSvg_loading)
-					// 还原svg图标
+					// 还原 svg 图标
 					b.SetProperty("element-icon-hsvg", b.GetProperty("element-icon-hsvg-old"))
 				}
 			}
@@ -199,6 +174,10 @@ func (b *Button) SetLoading(on bool, svgSize int32, text string) *Button {
 // SetSizeEle 设置 Button 的大小. 只能使用预设好的常量.
 //
 // size: 预设好的大小, 可使用常量: ButtonSize_.
+//   - 1 = default (98x40)
+//   - 2 = medium (98x36)
+//   - 3 = small (80x32)
+//   - 4 = mini (80x28)
 func (b *Button) SetSizeEle(size int) *Button {
 	if size >= ButtonSize_Default && size <= ButtonSize_Mini {
 		widths := []int32{98, 98, 80, 80}
@@ -213,6 +192,13 @@ func (b *Button) SetSizeEle(size int) *Button {
 // SetStyle 设置按钮样式.
 //
 // style: 按钮样式, 默认为 ButtonStyle_Default, 可使用常量: ButtonStyle_.
+//   - 0 = default
+//   - 1 = primary
+//   - 2 = success
+//   - 3 = info
+//   - 4 = warning
+//   - 5 = danger
+//   - 6 = text
 func (b *Button) SetStyle(style int) *Button {
 	// 选择不同的绘制事件
 	var funcDrawEle, bgColors, textColors, borderColors, textcolor string
@@ -221,9 +207,9 @@ func (b *Button) SetStyle(style int) *Button {
 			funcDrawEle = "onDrawButton_Default"
 		} else {
 			funcDrawEle = "onDrawButton_Color_Plain"
-			bgColors = bgColorsMap_Plain[style]
-			textColors = textColorsMap_Plain[style]
-			borderColors = borderColorsMap_Plain[style]
+			bgColors = ButtonBgColors_Plain[style]
+			textColors = ButtonTextColors_Plain[style]
+			borderColors = ButtonBorderColors_Plain[style]
 			b.SetProperty("element-text-colors", textColors)
 			b.SetProperty("element-border-colors", borderColors)
 		}
@@ -235,7 +221,7 @@ func (b *Button) SetStyle(style int) *Button {
 			textcolor = "4294967295"
 			b.SetProperty("element-text-color", textcolor)
 		}
-		bgColors = bgcolorsMap[style]
+		bgColors = ButtonBgColors[style]
 	} else { // 无边框无背景
 		funcDrawEle = "onDrawButton_Text"
 	}
@@ -244,37 +230,36 @@ func (b *Button) SetStyle(style int) *Button {
 	return b
 }
 
-// SetRound 设置按钮是否圆角.
+// SetRound 设置按钮的圆角大小, 没有设置时的默认圆角是 4.
 //
-// isRound: 是否圆角按钮.
-func (b *Button) SetRound(isRound bool) *Button {
-	if isRound {
-		b.SetProperty("element-round", xc.Itoa(18*b.dpi/96))
-	} else {
-		b.SetProperty("element-round", xc.Itoa(4*b.dpi/96))
+// round: 圆角大小, 小于 1 时为直角.
+func (b *Button) SetRound(round int32) *Button {
+	if round < 0 {
+		round = 0
 	}
+	b.SetProperty("element-round", xc.Itoa(round*b.dpi/96))
 	return b
 }
 
-// SetCircle 设置按钮是否圆形.
+// GetRound 获取按钮的圆角大小.
+func (b *Button) GetRound() int32 {
+	return xc.Atoi(b.GetProperty("element-round")) * 96 / b.dpi
+}
+
+// EnableCircle 设置按钮是否圆形.
 //
 // isCircle: 是否圆形按钮.
-func (b *Button) SetCircle(isCircle bool) *Button {
-	b.SetProperty("element-circle", Bool2Str(isCircle))
+func (b *Button) EnableCircle(isCircle bool) *Button {
+	b.SetProperty("element-circle", common.BoolToString(isCircle))
 	return b
 }
 
-// SetPlain 设置按钮是否朴素.
+// EnablePlain 设置按钮是否朴素.
 //
 // isPlain: 是否朴素按钮.
-func (b *Button) SetPlain(isPlain bool) *Button {
-	b.SetProperty("element-plain", Bool2Str(isPlain))
+func (b *Button) EnablePlain(isPlain bool) *Button {
+	b.SetProperty("element-plain", common.BoolToString(isPlain))
 	return b
-}
-
-// IsRound 是否为圆角按钮.
-func (b *Button) IsRound() bool {
-	return b.GetProperty("element-round") == "true"
 }
 
 // IsCircle 是否为圆形按钮.
@@ -289,28 +274,30 @@ func (b *Button) IsPlain() bool {
 
 // ButtonOption 按钮选项.
 type ButtonOption struct {
-	// 自定义炫彩svg句柄.
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	// 自定义炫彩 svg 句柄.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, Icon 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > Icon.
 	HSvg int
 	// 自定义炫彩图片句柄.
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, Icon 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > Icon.
 	HImage int
 
-	// Font Wesome 图标对应的Unicode码点十进制数字, 如61872相当于'fa-solid fa-paw'.
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	// Font Wesome 图标对应的 Unicode 码点十进制数字, 如 61872 相当于'fa-solid fa-paw'.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, Icon 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > Icon.
 	IconUnicode int32
-	// Font Wesome 图标对应的Unicode码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
+	// Font Wesome 图标对应的 Unicode 码点十六进制文本, 如'f1b0'相当于'fa-solid fa-paw'.
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, Icon 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > Icon.
 	IconHex string
 	// Font Wesome 图标名.
 	//  - 如'fa-solid fa-paw', 前面是风格, 后面是图标名, 用空格分开, 其中风格可省略, 没有风格时会自动根据'fa-solid', 'fa-brands', 'fa-regular'的顺序尝试添加风格.
-	//  - 图标大全: https://fa6.dashgame.com, 在网页里点导航栏图标, 然后点免费, 可筛选出2000+免费图标, 点击图标会复制完整风格+图标名到剪贴板, 可直接使用. 内置FontAwesome版本为6.6.0
-	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, IconName 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > IconName.
-	IconName string
+	//  - 图标大全: https://fa6.dashgame.com, 在网页里点导航栏图标, 然后点免费, 可筛选出 2000+ 免费图标, 点击图标会复制完整风格+图标名到剪贴板, 可直接使用. 内置 FontAwesome 版本为6.6.0
+	// 	- 注意: HSvg, HImage, IconUnicode, IconHex, Icon 这几个参数只需要填一个即可, 填多个的话, 生效顺序优先级为: HSvg > HImage > IconUnicode > IconHex > Icon.
+	Icon string
+
+	X, Y, Width, Height int32
 
 	// 按钮尺寸, 默认为 ButtonSize_Default, 可使用常量: ButtonSize_
 	//  - 使用预设的尺寸效果会比较好.
-	//  - 如果 cx 或 cy 参数 > 0 那么本字段就无效.
+	//  - 如果 Width 或 Height 字段 > 0 那么本字段就无效.
 	//  - 1 = default (98x40)
 	//  - 2 = medium (98x36)
 	//  - 3 = small (80x32)
@@ -327,15 +314,10 @@ type ButtonOption struct {
 	//  - 6 = text
 	Style int
 
-	// 是否为朴素按钮, 默认为false.
+	// 是否为朴素按钮, 默认为 false.
 	//  - 当 Style 字段 = ButtonStyle_Text 时本字段无效.
 	IsPlain bool
-	// 是否为圆角按钮, 默认为false.
-	//  - 注意: IsRound 参数和 IsCircle 参数只能二选一, 要么是圆角, 要么是圆形, 圆形优先级高于圆角.
-	//  - 当 Style 字段 = ButtonStyle_Text 时本字段无效.
-	IsRound bool
-	// 是否为圆形按钮, 默认为false.
-	//  - 注意: IsRound 参数和 IsCircle 参数只能二选一, 要么是圆角, 要么是圆形, 圆形优先级高于圆角.
+	// 是否为圆形按钮, 默认为 false.
 	//  - 当 Style 字段 = ButtonStyle_Text 时本字段无效.
 	IsCircle bool
 }
@@ -361,41 +343,45 @@ const (
 	ButtonStyle_Text
 )
 
-// bgcolorsMap 存放普通按钮的背景颜色字符串
-var bgcolorsMap = map[int]string{
-	ButtonStyle_Default: "4294967295, 4294964716, 4294964716, -1, 4294967295",
-	ButtonStyle_Primary: "4294942272, 4294947174, 4293299770, -1, 4294954912",
-	ButtonStyle_Success: "4282040935, 4284599941, 4281642845, -1, 4288537011",
-	ButtonStyle_Info:    "4288254864, 4289571238, 4287267970, -1, 4291611080",
-	ButtonStyle_Warning: "4282163942, 4284724715, 4281766607, -1, 4288598515",
-	ButtonStyle_Danger:  "4285295861, 4287203831, 4284572125, -1, 4290164474",
+// ButtonBgColors 存放按钮不同样式的背景颜色字符串, 不包含朴素按钮的.
+//   - 顺序: Leave, Stay, Down, Check, Disable
+var ButtonBgColors = map[int]string{
+	ButtonStyle_Default: JoinColorString(xc.RGBA(255, 255, 255, 255), xc.RGBA(236, 245, 255, 255), xc.RGBA(236, 245, 255, 255), 0, xc.RGBA(255, 255, 255, 255)),
+	ButtonStyle_Primary: JoinColorString(xc.RGBA(64, 158, 255, 255), xc.RGBA(102, 177, 255, 255), xc.RGBA(58, 142, 230, 255), 0, xc.RGBA(160, 207, 255, 255)),
+	ButtonStyle_Success: JoinColorString(xc.RGBA(103, 194, 58, 255), xc.RGBA(133, 206, 97, 255), xc.RGBA(93, 175, 52, 255), 0, xc.RGBA(179, 225, 157, 255)),
+	ButtonStyle_Info:    JoinColorString(xc.RGBA(144, 147, 153, 255), xc.RGBA(166, 169, 173, 255), xc.RGBA(130, 132, 138, 255), 0, xc.RGBA(200, 201, 204, 255)),
+	ButtonStyle_Warning: JoinColorString(xc.RGBA(230, 162, 60, 255), xc.RGBA(235, 181, 99, 255), xc.RGBA(207, 146, 54, 255), 0, xc.RGBA(243, 209, 158, 255)),
+	ButtonStyle_Danger:  JoinColorString(xc.RGBA(245, 108, 108, 255), xc.RGBA(247, 137, 137, 255), xc.RGBA(221, 97, 97, 255), 0, xc.RGBA(250, 182, 182, 255)),
 }
 
-// borderColorsMap_Plain 存放朴素按钮的边框颜色字符串, 不包含default样式的
-var borderColorsMap_Plain = map[int]string{
-	ButtonStyle_Primary: "4294957235, 4294942272, 4293299770, -1, 4294962393",
-	ButtonStyle_Success: "4289783746, 4282040935, 4281642845, -1, 4292408289",
-	ButtonStyle_Info:    "4292269267, 4288254864, 4287267970, -1, 4293650921",
-	ButtonStyle_Warning: "4289846005, 4282163942, 4281766607, -1, 4292406522",
-	ButtonStyle_Danger:  "4291085563, 4285295861, 4284572125, -1, 4293059325",
+// ButtonBorderColors_Plain 存放朴素按钮不同样式的边框颜色字符串, 不包含 default 样式的
+//   - 顺序: Leave, Stay, Down, Check, Disable
+var ButtonBorderColors_Plain = map[int]string{
+	ButtonStyle_Primary: JoinColorString(xc.RGBA(179, 216, 255, 255), xc.RGBA(64, 158, 255, 255), xc.RGBA(58, 142, 230, 255), 0, xc.RGBA(217, 236, 255, 255)),
+	ButtonStyle_Success: JoinColorString(xc.RGBA(194, 231, 176, 255), xc.RGBA(103, 194, 58, 255), xc.RGBA(93, 175, 52, 255), 0, xc.RGBA(225, 243, 216, 255)),
+	ButtonStyle_Info:    JoinColorString(xc.RGBA(211, 212, 214, 255), xc.RGBA(144, 147, 153, 255), xc.RGBA(130, 132, 138, 255), 0, xc.RGBA(233, 233, 235, 255)),
+	ButtonStyle_Warning: JoinColorString(xc.RGBA(245, 218, 177, 255), xc.RGBA(230, 162, 60, 255), xc.RGBA(207, 146, 54, 255), 0, xc.RGBA(250, 236, 216, 255)),
+	ButtonStyle_Danger:  JoinColorString(xc.RGBA(251, 196, 196, 255), xc.RGBA(245, 108, 108, 255), xc.RGBA(221, 97, 97, 255), 0, xc.RGBA(253, 226, 226, 255)),
 }
 
-// bgColorsMap_Plain 存放朴素按钮的背景颜色字符串, 不包含default样式的
-var bgColorsMap_Plain = map[int]string{
-	ButtonStyle_Primary: "4294964716, 4294942272, 4293299770, -1, 4294964716",
-	ButtonStyle_Success: "4293655024, 4282040935, 4281642845, -1, 4293655024",
-	ButtonStyle_Info:    "4294309108, 4288254864, 4287267970, -1, 4294309108",
-	ButtonStyle_Warning: "4293719805, 4282163942, 4281766607, -1, 4293719805",
-	ButtonStyle_Danger:  "4293980414, 4285295861, 4284572125, -1, 4293980414",
+// ButtonBgColors_Plain 存放朴素按钮不同样式的背景颜色字符串, 不包含 default 样式的
+//   - 顺序: Leave, Stay, Down, Check, Disable
+var ButtonBgColors_Plain = map[int]string{
+	ButtonStyle_Primary: JoinColorString(xc.RGBA(236, 245, 255, 255), xc.RGBA(64, 158, 255, 255), xc.RGBA(58, 142, 230, 255), 0, xc.RGBA(236, 245, 255, 255)),
+	ButtonStyle_Success: JoinColorString(xc.RGBA(240, 249, 235, 255), xc.RGBA(103, 194, 58, 255), xc.RGBA(93, 175, 52, 255), 0, xc.RGBA(240, 249, 235, 255)),
+	ButtonStyle_Info:    JoinColorString(xc.RGBA(244, 244, 245, 255), xc.RGBA(144, 147, 153, 255), xc.RGBA(130, 132, 138, 255), 0, xc.RGBA(244, 244, 245, 255)),
+	ButtonStyle_Warning: JoinColorString(xc.RGBA(253, 246, 236, 255), xc.RGBA(230, 162, 60, 255), xc.RGBA(207, 146, 54, 255), 0, xc.RGBA(253, 246, 236, 255)),
+	ButtonStyle_Danger:  JoinColorString(xc.RGBA(254, 240, 240, 255), xc.RGBA(245, 108, 108, 255), xc.RGBA(221, 97, 97, 255), 0, xc.RGBA(254, 240, 240, 255)),
 }
 
-// textColorsMap_Plain 存放朴素按钮的字体颜色字符串, 不包含default样式的
-var textColorsMap_Plain = map[int]string{
-	ButtonStyle_Primary: "4294942272, 4294967295, 4294967295, -1, 4294952332",
-	ButtonStyle_Success: "4282040935, 4294967295, 4294967295, -1, 4287224484",
-	ButtonStyle_Info:    "4288254864, 4294967295, 4294967295, -1, 4290952892",
-	ButtonStyle_Warning: "4282163942, 4294967295, 4294967295, -1, 4287285232",
-	ButtonStyle_Danger:  "4285295861, 4294967295, 4294967295, -1, 4289177593",
+// ButtonTextColors_Plain 存放朴素按钮不同样式的字体颜色字符串, 不包含 default 样式的
+//   - 顺序: Leave, Stay, Down, Check, Disable
+var ButtonTextColors_Plain = map[int]string{
+	ButtonStyle_Primary: JoinColorString(xc.RGBA(64, 158, 255, 255), xc.RGBA(255, 255, 255, 255), xc.RGBA(255, 255, 255, 255), 0, xc.RGBA(140, 197, 255, 255)),
+	ButtonStyle_Success: JoinColorString(xc.RGBA(103, 194, 58, 255), xc.RGBA(255, 255, 255, 255), xc.RGBA(255, 255, 255, 255), 0, xc.RGBA(164, 218, 137, 255)),
+	ButtonStyle_Info:    JoinColorString(xc.RGBA(144, 147, 153, 255), xc.RGBA(255, 255, 255, 255), xc.RGBA(255, 255, 255, 255), 0, xc.RGBA(188, 190, 194, 255)),
+	ButtonStyle_Warning: JoinColorString(xc.RGBA(230, 162, 60, 255), xc.RGBA(255, 255, 255, 255), xc.RGBA(255, 255, 255, 255), 0, xc.RGBA(240, 199, 138, 255)),
+	ButtonStyle_Danger:  JoinColorString(xc.RGBA(245, 108, 108, 255), xc.RGBA(255, 255, 255, 255), xc.RGBA(255, 255, 255, 255), 0, xc.RGBA(249, 167, 167, 255)),
 }
 
 // 默认按钮和朴素默认按钮 style 0
@@ -406,23 +392,23 @@ func onDrawButton_Default(hEle int, hDraw int, pbHandled *bool) int {
 	rc.Bottom = xc.XEle_GetHeight(hEle)
 	xc.XDraw_EnableSmoothingMode(hDraw, true)
 
-	var textColor, borderColor, bgColor int
+	var textColor, borderColor, bgColor uint32
 	nState := xc.XBtn_GetStateEx(hEle)
 	isPlain := xc.XC_GetProperty(hEle, "element-plain") == "true"
 	if isPlain { // 朴素按钮
 		bgColor = xcc.COLOR_WHITE
 	} else {
 		if bgColorsText := xc.XC_GetProperty(hEle, "element-bg-colors"); bgColorsText != "" {
-			colors := strings.Split(bgColorsText, ", ")
+			colors := strings.Split(bgColorsText, ",")
 			if int(nState) < len(colors) {
-				bgColor, _ = strconv.Atoi(colors[nState])
+				bgColor = common.AtoUint32(colors[nState])
 			}
 		}
 	}
 
 	switch nState {
 	case xcc.Button_State_Leave:
-		borderColor = xc.RGBA(220, 223, 230, 255)
+		borderColor = xc.RGBA(220, 223, 229, 255)
 		textColor = xc.RGBA(96, 98, 102, 255)
 	case xcc.Button_State_Stay:
 		borderColor = xc.RGBA(198, 226, 255, 255)
@@ -471,10 +457,10 @@ func onDrawButton_Default(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		svgWidth := xc.XSvg_GetWidth(hSvg)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
 		xc.XDraw_DrawSvg(hDraw, hSvg, rc3.Left, (rc.Bottom-xc.XSvg_GetHeight(hSvg))/2)
 
-		rc3 = OffsetRect(rc3, svgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, svgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
 	} else if hImage, _ := strconv.Atoi(xc.XC_GetProperty(hEle, "element-icon-himage")); hImage > 0 && xc.XC_IsHXCGUI(hImage, xcc.XC_IMAGE_FRAME) {
@@ -488,10 +474,10 @@ func onDrawButton_Default(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		imgWidth := xc.XImage_GetWidth(hImage)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
 		xc.XDraw_Image(hDraw, hImage, rc3.Left, (rc.Bottom-xc.XImage_GetHeight(hImage))/2)
 
-		rc3 = OffsetRect(rc3, imgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, imgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_SetBrushColor(hDraw, textColor)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -510,10 +496,10 @@ func onDrawButton_Default(hEle int, hDraw int, pbHandled *bool) int {
 		defaultFont := xc.XC_GetDefaultFont()
 		hFontAwesomeShowSizeCx := xc.Atoi(xc.XC_GetProperty(hEle, "element-hfontawesome-showsize-cx"))
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), defaultFont, &defaultFontShowSize)
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
 		xc.XDraw_DrawText(hDraw, iconFa, &rc3)
 
-		rc3 = OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
 		xc.XDraw_SetFont(hDraw, defaultFont)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -532,13 +518,13 @@ func onDrawButton_Color(hEle int, hDraw int, pbHandled *bool) int {
 	rc.Bottom = xc.XEle_GetHeight(hEle)
 	xc.XDraw_EnableSmoothingMode(hDraw, true)
 
-	textColor, _ := strconv.Atoi(xc.XC_GetProperty(hEle, "element-text-color"))
-	var bgColor int // 背景颜色
+	textColor := common.AtoUint32(xc.XC_GetProperty(hEle, "element-text-color"))
+	var bgColor uint32 // 背景颜色
 	if bgColorsText := xc.XC_GetProperty(hEle, "element-bg-colors"); bgColorsText != "" {
-		colors := strings.Split(bgColorsText, ", ")
+		colors := strings.Split(bgColorsText, ",")
 		nState := int(xc.XBtn_GetStateEx(hEle))
 		if nState < len(colors) {
-			bgColor, _ = strconv.Atoi(colors[nState])
+			bgColor = common.AtoUint32(colors[nState])
 		}
 	}
 
@@ -565,10 +551,10 @@ func onDrawButton_Color(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		svgWidth := xc.XSvg_GetWidth(hSvg)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
 		xc.XDraw_DrawSvg(hDraw, hSvg, rc3.Left, (rc.Bottom-xc.XSvg_GetHeight(hSvg))/2)
 
-		rc3 = OffsetRect(rc3, svgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, svgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
 	} else if hImage, _ := strconv.Atoi(xc.XC_GetProperty(hEle, "element-icon-himage")); hImage > 0 && xc.XC_IsHXCGUI(hImage, xcc.XC_IMAGE_FRAME) {
@@ -582,10 +568,10 @@ func onDrawButton_Color(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		imgWidth := xc.XImage_GetWidth(hImage)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
 		xc.XDraw_Image(hDraw, hImage, rc3.Left, (rc.Bottom-xc.XImage_GetHeight(hImage))/2)
 
-		rc3 = OffsetRect(rc3, imgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, imgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_SetBrushColor(hDraw, textColor)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -604,10 +590,10 @@ func onDrawButton_Color(hEle int, hDraw int, pbHandled *bool) int {
 		defaultFont := xc.XC_GetDefaultFont()
 		hFontAwesomeShowSizeCx := xc.Atoi(xc.XC_GetProperty(hEle, "element-hfontawesome-showsize-cx"))
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), defaultFont, &defaultFontShowSize)
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
 		xc.XDraw_DrawText(hDraw, iconFa, &rc3)
 
-		rc3 = OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
 		xc.XDraw_SetFont(hDraw, defaultFont)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -627,23 +613,23 @@ func onDrawButton_Color_Plain(hEle int, hDraw int, pbHandled *bool) int {
 	xc.XDraw_EnableSmoothingMode(hDraw, true)
 
 	nState := xc.XBtn_GetStateEx(hEle)
-	var bgColor, textColor, borderColor int
+	var bgColor, textColor, borderColor uint32
 	if bgColorsText := xc.XC_GetProperty(hEle, "element-bg-colors"); bgColorsText != "" {
-		colors := strings.Split(bgColorsText, ", ")
+		colors := strings.Split(bgColorsText, ",")
 		if int(nState) < len(colors) {
-			bgColor, _ = strconv.Atoi(colors[nState])
+			bgColor = common.AtoUint32(colors[nState])
 		}
 	}
 	if textColorsText := xc.XC_GetProperty(hEle, "element-text-colors"); textColorsText != "" {
-		colors := strings.Split(textColorsText, ", ")
+		colors := strings.Split(textColorsText, ",")
 		if int(nState) < len(colors) {
-			textColor, _ = strconv.Atoi(colors[nState])
+			textColor = common.AtoUint32(colors[nState])
 		}
 	}
 	if borderColorsText := xc.XC_GetProperty(hEle, "element-border-colors"); borderColorsText != "" {
-		colors := strings.Split(borderColorsText, ", ")
+		colors := strings.Split(borderColorsText, ",")
 		if int(nState) < len(colors) {
-			borderColor, _ = strconv.Atoi(colors[nState])
+			borderColor = common.AtoUint32(colors[nState])
 		}
 	}
 
@@ -692,10 +678,10 @@ func onDrawButton_Color_Plain(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		svgWidth := xc.XSvg_GetWidth(hSvg)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
 		xc.XDraw_DrawSvg(hDraw, hSvg, rc3.Left, (rc.Bottom-xc.XSvg_GetHeight(hSvg))/2)
 
-		rc3 = OffsetRect(rc3, svgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, svgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
 	} else if hImage, _ := strconv.Atoi(xc.XC_GetProperty(hEle, "element-icon-himage")); hImage > 0 && xc.XC_IsHXCGUI(hImage, xcc.XC_IMAGE_FRAME) {
@@ -709,10 +695,10 @@ func onDrawButton_Color_Plain(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		imgWidth := xc.XImage_GetWidth(hImage)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
 		xc.XDraw_Image(hDraw, hImage, rc3.Left, (rc.Bottom-xc.XImage_GetHeight(hImage))/2)
 
-		rc3 = OffsetRect(rc3, imgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, imgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_SetBrushColor(hDraw, textColor)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -731,10 +717,10 @@ func onDrawButton_Color_Plain(hEle int, hDraw int, pbHandled *bool) int {
 		defaultFont := xc.XC_GetDefaultFont()
 		hFontAwesomeShowSizeCx := xc.Atoi(xc.XC_GetProperty(hEle, "element-hfontawesome-showsize-cx"))
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), defaultFont, &defaultFontShowSize)
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
 		xc.XDraw_DrawText(hDraw, iconFa, &rc3)
 
-		rc3 = OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
 		xc.XDraw_SetFont(hDraw, defaultFont)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -753,7 +739,7 @@ func onDrawButton_Text(hEle int, hDraw int, pbHandled *bool) int {
 	rc.Bottom = xc.XEle_GetHeight(hEle)
 	xc.XDraw_EnableSmoothingMode(hDraw, true)
 
-	var textColor int // 文本颜色
+	var textColor uint32 // 文本颜色
 	nState := xc.XBtn_GetStateEx(hEle)
 	switch nState {
 	case xcc.Button_State_Leave:
@@ -780,10 +766,10 @@ func onDrawButton_Text(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		svgWidth := xc.XSvg_GetWidth(hSvg)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-svgWidth-space)/2, 0, svgWidth, 0)
 		xc.XDraw_DrawSvg(hDraw, hSvg, rc3.Left, (rc.Bottom-xc.XSvg_GetHeight(hSvg))/2)
 
-		rc3 = OffsetRect(rc3, svgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, svgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
 	} else if hImage, _ := strconv.Atoi(xc.XC_GetProperty(hEle, "element-icon-himage")); hImage > 0 && xc.XC_IsHXCGUI(hImage, xcc.XC_IMAGE_FRAME) {
@@ -797,10 +783,10 @@ func onDrawButton_Text(hEle int, hDraw int, pbHandled *bool) int {
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), xc.XC_GetDefaultFont(), &defaultFontShowSize)
 		imgWidth := xc.XImage_GetWidth(hImage)
 		var space int32 = 4 // 图标和文字之间的间距
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left-defaultFontShowSize.CX-imgWidth-space)/2, 0, imgWidth, 0)
 		xc.XDraw_Image(hDraw, hImage, rc3.Left, (rc.Bottom-xc.XImage_GetHeight(hImage))/2)
 
-		rc3 = OffsetRect(rc3, imgWidth+space, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, imgWidth+space, 0, 0, 0)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_SetBrushColor(hDraw, textColor)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
@@ -819,10 +805,10 @@ func onDrawButton_Text(hEle int, hDraw int, pbHandled *bool) int {
 		defaultFont := xc.XC_GetDefaultFont()
 		hFontAwesomeShowSizeCx := xc.Atoi(xc.XC_GetProperty(hEle, "element-hfontawesome-showsize-cx"))
 		xc.XC_GetTextShowSize(btnText, int32(len(btnText)), defaultFont, &defaultFontShowSize)
-		rc3 := OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
+		rc3 := xc.OffsetRect(rc, (rc.Right-rc.Left)/2-(defaultFontShowSize.CX+hFontAwesomeShowSizeCx)/2, 0, hFontAwesomeShowSizeCx, 0)
 		xc.XDraw_DrawText(hDraw, iconFa, &rc3)
 
-		rc3 = OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
+		rc3 = xc.OffsetRect(rc3, hFontAwesomeShowSizeCx, 0, 0, 0)
 		xc.XDraw_SetFont(hDraw, defaultFont)
 		xc.XDraw_SetTextAlign(hDraw, xcc.TextAlignFlag_Vcenter|xcc.TextFormatFlag_NoWrap)
 		xc.XDraw_DrawText(hDraw, btnText, &rc3)
