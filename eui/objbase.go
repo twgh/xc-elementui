@@ -89,7 +89,7 @@ func (o *objBase) SetIconName(iconName string) *objBase {
 			fontType = fontType[:index]
 		}
 	}
-	o.setIconFa(iconFaStr, fontType)
+	setIconFa(o, iconFaStr, fontType)
 	return o
 }
 
@@ -117,7 +117,7 @@ func (o *objBase) SetIconHex(iconHex string) *objBase {
 			break
 		}
 	}
-	o.setIconFa(iconFaStr, fontType)
+	setIconFa(o, iconFaStr, fontType)
 	return o
 }
 
@@ -138,16 +138,16 @@ func (o *objBase) SetIconUnicode(iconUnicode int32) *objBase {
 			break
 		}
 	}
-	o.setIconFa(iconFaStr, fontType)
+	setIconFa(o, iconFaStr, fontType)
 	return o
 }
 
-// setIconFa 设置 iconfa 的相关信息.
+// 设置 iconfa 的相关信息.
 //
 // iconFaStr: Font Awesome 图标字符串.
 //
 // fontType: 字体类型, 可为'fa-solid', 'fa-brands', 'fa-regular'.
-func (o *objBase) setIconFa(iconFaStr, fontType string) *objBase {
+func setIconFa(o *objBase, iconFaStr, fontType string) *objBase {
 	o.ClearIcon()
 	xc.XC_SetProperty(o.H, "element-icon-fa", iconFaStr)
 	if iconFaStr != "" { // 确定字体句柄和字体显示大小
