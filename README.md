@@ -21,6 +21,8 @@
 go get -u github.com/twgh/xc-elementui@latest
 ```
 
+[‬‍‌‌﻿⁠﻿﻿﻿﻿‍⁠‍﻿‍‍﻿‬‌⁠‍‍﻿‌‍‍‌‬‬go get 获取带日期版本号的库](https://mcn1fno5w69l.feishu.cn/wiki/KU8OwOzhniDlqgk5bBxcMQiWnAg)
+
 ## 图片展示
 
 ### 按钮例子
