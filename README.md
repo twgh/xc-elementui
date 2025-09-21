@@ -18,7 +18,7 @@
 ## 获取
 
 ```bash
-go get -u github.com/twgh/xc-elementui@latest
+go get -u github.com/twgh/xc-elementui@6a79f6ec094cbaa0172486023122be256aeeb55b
 ```
 
 [‬‍‌‌﻿⁠﻿﻿﻿﻿‍⁠‍﻿‍‍﻿‬‌⁠‍‍﻿‌‍‍‌‬‬go get 获取带日期版本号的库](https://mcn1fno5w69l.feishu.cn/wiki/KU8OwOzhniDlqgk5bBxcMQiWnAg)
