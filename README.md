@@ -1,7 +1,7 @@
 <h1 align="center">xc-elementui</h1>
 <p align="center">
     <a href="https://github.com/twgh/xc-elementui/releases"><img src="https://img.shields.io/badge/release-早期版本-blue" alt="release"></a>
-    <a href="https://github.com/twgh/xcgui"><img src="https://img.shields.io/badge/xcgui-1.3.396-blue" alt="xcgui"></a>
+    <a href="https://github.com/twgh/xcgui"><img src="https://img.shields.io/badge/xcgui-1.3.397-blue" alt="xcgui"></a>
    <a href="https://golang.org"> <img src="https://img.shields.io/badge/golang-≥1.18-blue" alt="golang"></a>
     <a href="https://pkg.go.dev/github.com/twgh/xc-elementui"><img src="https://img.shields.io/badge/go.dev-reference-brightgreen" alt="GoDoc"></a>
     <a href="https://github.com/twgh/xc-elementui/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-brightgreen" alt="License"></a>
@@ -18,7 +18,7 @@
 ## 获取
 
 ```bash
-go get -u github.com/twgh/xc-elementui@6a79f6ec094cbaa0172486023122be256aeeb55b
+go get -u github.com/twgh/xc-elementui@latest
 ```
 
 [‬‍‌‌﻿⁠﻿﻿﻿﻿‍⁠‍﻿‍‍﻿‬‌⁠‍‍﻿‌‍‍‌‬‬go get 获取带日期版本号的库](https://mcn1fno5w69l.feishu.cn/wiki/KU8OwOzhniDlqgk5bBxcMQiWnAg)
