@@ -18,6 +18,9 @@
 ## 获取
 
 ```bash
+// 先执行这个把最新日期的库下载到本机
+go mod download github.com/twgh/xc-elementui@latest
+// 然后在项目目录中执行
 go get -u github.com/twgh/xc-elementui@latest
 ```
 
