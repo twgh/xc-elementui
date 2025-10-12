@@ -1,7 +1,7 @@
 <h1 align="center">xc-elementui</h1>
 <p align="center">
     <a href="https://github.com/twgh/xc-elementui/releases"><img src="https://img.shields.io/badge/release-早期版本-blue" alt="release"></a>
-    <a href="https://github.com/twgh/xcgui"><img src="https://img.shields.io/badge/xcgui-1.3.397-blue" alt="xcgui"></a>
+    <a href="https://github.com/twgh/xcgui"><img src="https://img.shields.io/badge/xcgui-1.3.398-blue" alt="xcgui"></a>
    <a href="https://golang.org"> <img src="https://img.shields.io/badge/golang-≥1.18-blue" alt="golang"></a>
     <a href="https://pkg.go.dev/github.com/twgh/xc-elementui"><img src="https://img.shields.io/badge/go.dev-reference-brightgreen" alt="GoDoc"></a>
     <a href="https://github.com/twgh/xc-elementui/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-brightgreen" alt="License"></a>
@@ -10,6 +10,7 @@
 	<a href="https://pkg.go.dev/github.com/twgh/xc-elementui">项目文档</a>&nbsp;&nbsp;
 </p>
 
+
 ## 介绍
 
 - 使用 [xcgui](https://github.com/twgh/xcgui) 仿 [Elementui](https://element.eleme.cn/#/zh-CN/component/installation)，元素样式具有一致性，快速开发界面。
@@ -17,14 +18,21 @@
 
 ## 获取
 
+先执行这个把最新日期的库下载到本机
+
 ```bash
-// 先执行这个把最新日期的库下载到本机
 go mod download github.com/twgh/xc-elementui@latest
-// 然后在项目目录中执行
+```
+
+然后在项目目录中执行
+
+```bash
 go get -u github.com/twgh/xc-elementui@latest
 ```
 
-[‬‍‌‌﻿⁠﻿﻿﻿﻿‍⁠‍﻿‍‍﻿‬‌⁠‍‍﻿‌‍‍‌‬‬go get 获取带日期版本号的库](https://mcn1fno5w69l.feishu.cn/wiki/KU8OwOzhniDlqgk5bBxcMQiWnAg)
+或者
+
+[‬‬go get 获取带日期版本号的库](https://mcn1fno5w69l.feishu.cn/wiki/KU8OwOzhniDlqgk5bBxcMQiWnAg)
 
 ## 图片展示
 

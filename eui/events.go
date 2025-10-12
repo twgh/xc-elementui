@@ -1,12 +1,11 @@
 package eui
 
 import (
-	"github.com/twgh/xcgui/widget"
 	"github.com/twgh/xcgui/xc"
 )
 
 // funcDrawEleMap 存放元素绘制事件
-var funcDrawEleMap = map[string]widget.XE_PAINT1{
+var funcDrawEleMap = map[string]xc.XE_PAINT1{
 	"onDrawButton_Default":     onDrawButton_Default,
 	"onDrawButton_Color":       onDrawButton_Color,
 	"onDrawButton_Text":        onDrawButton_Text,
