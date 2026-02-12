@@ -33,9 +33,9 @@ type iconFa struct {
 	Unicode int32    `json:"u"`
 }
 
-// initFontAwesomeJson 把 FontAwesome icons 的 json 数据解析后存入 map 中.
+// initFontAwesomeJson 把 FontAwesome icons 的 JSON 数据解析后存入 map 中.
 //
-// jsonData: FontAwesome icons 的 json 数据.
+// jsonData: FontAwesome icons 的 JSON 数据.
 func initFontAwesomeJson(jsonData []byte) error {
 	// 解析 JSON
 	var iconsMap map[string]iconFa

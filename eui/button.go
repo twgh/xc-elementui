@@ -136,7 +136,7 @@ func (b *Button) SetLoading(on bool, svgSize int32, text string) *Button {
 			xc.XAnima_Release(hAni, true)
 		}
 		// 设置加载中图标
-		hSvg_loading := xc.XSvg_LoadStringW(svg_loading)
+		hSvg_loading := xc.XSvg_LoadString(svg_loading)
 		if hSvg_loading > 0 && xc.XC_IsHXCGUI(hSvg_loading, xcc.XC_SVG) {
 			// 设置 svg 大小
 			if svgSize < 1 {

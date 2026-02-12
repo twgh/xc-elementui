@@ -7,13 +7,13 @@ import (
 	"github.com/twgh/xcgui/common"
 )
 
-// Xchar 传入 Unicode 码点转换到字符. 如 20013 是'中'.
-func Xchar(UnicodePoint int32) string {
+// XChar 传入 Unicode 码点转换到字符. 如 20013 是'中'.
+func XChar(UnicodePoint int32) string {
 	return string(UnicodePoint)
 }
 
-// Xchar2 传入 Unicode 码点十六进制文本转换到字符. 如 4E2D 是'中'.
-func Xchar2(UnicodePointHex string) string {
+// XCharHex 传入 Unicode 码点十六进制文本转换到字符. 如 4E2D 是'中'.
+func XCharHex(UnicodePointHex string) string {
 	decimal, _ := strconv.ParseInt(UnicodePointHex, 16, 32)
 	return string(int32(decimal))
 }

@@ -21,7 +21,7 @@ func main() {
 	// 设置默认字体
 	a.SetDefaultFont(font.NewEX("微软雅黑", 10, xcc.FontStyle_Regular).Handle)
 	// 设置默认窗口图标
-	a.SetWindowIcon(imagex.NewBySvgStringW(svg_element).Handle)
+	a.SetWindowIcon(imagex.NewBySvgString(svg_element).Handle)
 
 	// 创建窗口
 	w := window.New(0, 0, 600, 400, "xc-elementui 简单例子", 0, xcc.Window_Style_Default|xcc.Window_Style_Drag_Window)
@@ -36,7 +36,7 @@ func main() {
 
 	// 创建Elementui对象
 	e := eui.NewElementui(12, w.GetDPI())
-	svgElement := svg.NewByStringW(svg_element).SetSize(20, 20)
+	svgElement := svg.NewByString(svg_element).SetSize(20, 20)
 
 	// 按钮
 	{
@@ -93,7 +93,7 @@ func main() {
 		e.CreateEdit(w.Handle, eui.EditOption{HSvg: svgElement.Handle, IsAutoColor: true, DefaultText: "svg图标+自动变色"})
 		e.CreateEdit(w.Handle, eui.EditOption{HSvg: svgElement.Handle, IsAutoColor: true, DefaultText: "svg图标+自动变色", IsRight: true})
 
-		hImage := app.NewImageBySvg(svg.NewByStringW(svg_element).SetSize(20, 20).Handle).Handle
+		hImage := app.NewImageBySvg(svg.NewByString(svg_element).SetSize(20, 20).Handle).Handle
 		e.CreateEdit(w.Handle, eui.EditOption{HImage: hImage, DefaultText: "hImage不会自动变色"})
 	}
 

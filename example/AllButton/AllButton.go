@@ -24,7 +24,7 @@ func main() {
 	// 设置默认字体
 	a.SetDefaultFont(font.NewEX("微软雅黑", 10, xcc.FontStyle_Regular).Handle)
 	// 设置默认窗口图标
-	a.SetWindowIcon(imagex.NewBySvgStringW(svg_element).Handle)
+	a.SetWindowIcon(imagex.NewBySvgString(svg_element).Handle)
 
 	// 创建窗口
 	w := window.New(0, 0, 740, 696, "xc-elementui 按钮例子", 0, xcc.Window_Style_Default|xcc.Window_Style_Drag_Window)
@@ -189,7 +189,7 @@ func createButton(hParent int, e *eui.Elementui) {
 		}
 
 		{
-			svgDel := svg.NewByStringW(svg_del).SetSize(20, 20)
+			svgDel := svg.NewByString(svg_del).SetSize(20, 20)
 			// 图标按钮 默认按钮 自定义 svg 图标
 			btn0 := e.CreateButton("", layout.Handle, eui.ButtonOption{HSvg: svgDel.Handle, Width: 56, Height: 40})
 			btn0.LayoutItem_EnableWrap(true)
@@ -237,7 +237,7 @@ func createButton(hParent int, e *eui.Elementui) {
 			})
 
 			// 图标+文字按钮 默认按钮 自定义炫彩图片句柄 这个图标颜色不会随按钮风格变化
-			img1 := imagex.NewBySvgStringW(svg_del)
+			img1 := imagex.NewBySvgString(svg_del)
 			btn2 := e.CreateButton("炫彩图片", layout.Handle, eui.ButtonOption{HImage: img1.Handle})
 			btn2.AddEvent_BnClick(func(hEle int, pbHandled *bool) int {
 				btn2.SetLoading(true, 0, "加载中")
